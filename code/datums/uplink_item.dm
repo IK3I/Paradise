@@ -122,6 +122,23 @@ var/list/uplink_items = list()
 	cost = 5
 	job = list("Clown")
 
+//mime
+/datum/uplink_item/job_specific/caneshotgun
+	name = "Cane Shotgun + Assassination Darts"
+	desc = "A specialized, one shell shotgun with a built-in cloaking device to mimic a cane. The shotgun is capable of hiding it's contents and the pin alongside being supressed. Comes with 6 special darts and a preloaded shrapnel round."
+	reference = "MCS"
+	item = /obj/item/weapon/storage/box/syndie_kit/caneshotgun
+	cost = 15
+	job = list("Mime")
+
+/datum/uplink_item/dangerous/cat_grenade
+	name = "Feral Cat Delivery Grenade"
+	desc = "The feral cat delivery grenade contains 8 dehydrated feral cats in a similar manner to dehydrated monkeys, which, upon detonation, will be rehydrated by a small reservoir of water contained within the grenade. These cats will then attack anything in sight."
+	item = /obj/item/weapon/grenade/spawnergrenade/feral_cats
+	reference = "CCLG"
+	cost = 5
+	job = list("Psychiatrist")//why? Becuase its funny that a person in charge of your mental wellbeing has a cat granade..
+
 //Chef
 /datum/uplink_item/jobspecific/specialsauce
 	name = "Chef Excellence's Special Sauce"
@@ -238,6 +255,35 @@ var/list/uplink_items = list()
 	cost = 12
 	job = list("Research Director")
 
+//Librarian
+/datum/uplink_item/jobspecific/etwenty
+	name = "The E20"
+	desc = "A seemingly innocent die, those who are not afraid to roll for attack will find it's effects quite explosive. Has a four second timer."
+	reference = "ETW"
+	item = /obj/item/weapon/dice/d20/e20
+	cost = 3
+	job = list("Librarian")
+
+
+//Botanist
+/datum/uplink_item/jobspecific/ambrosiacruciatus
+	name = "Ambrosia Cruciatus Seeds"
+	desc = "Part of the notorious Ambrosia family, this species is nearly indistinguishable from Ambrosia Vulgaris- but its' branches contain a revolting toxin. Eight units are enough to drive victims insane."
+	reference = "BRO"
+	item = /obj/item/seeds/ambrosiavulgarisseed/cruciatus
+	cost = 2
+	job = list("Botanist")
+
+
+//Atmos Tech
+/datum/uplink_item/jobspecific/contortionist
+	name = "Contortionist's Jumpsuit"
+	desc = "A highly flexible jumpsuit that will help you navigate the ventilation loops of the station internally. Comes with pockets and ID slot, but can't be used without stripping off most gear, including backpack, belt, helmet, and exosuit. Free hands are also necessary to crawl around inside."
+	reference = "AIRJ"
+	item = /obj/item/clothing/under/contortionist
+	cost = 6
+	job = list("Atmospheric Technician")
+
 //Stimulants
 
 /datum/uplink_item/jobspecific/stims
@@ -256,7 +302,7 @@ var/list/uplink_items = list()
 	reference = "TPB"
 	item = /obj/item/weapon/reagent_containers/glass/bottle/traitor
 	cost = 2
-	job = list("Scientist","Research Director","Chief Medical Officer","Medical Doctor","Psychiatrist","Chemist","Paramedic","Virologist","Bartender")
+	job = list("Research Director","Chief Medical Officer","Medical Doctor","Psychiatrist","Paramedic","Virologist","Bartender")
 
 // DANGEROUS WEAPONS
 
@@ -846,8 +892,11 @@ var/list/uplink_items = list()
 	cost = 10
 
 /datum/uplink_item/device_tools/singularity_beacon
-	name = "Singularity Beacon"
-	desc = "When screwed to wiring attached to an electric grid, then activated, this large device pulls the singularity towards it. Does not work when the singularity is still in containment. A singularity beacon can cause catastrophic damage to a space station, leading to an emergency evacuation. Because of its size, it cannot be carried. Ordering this sends you a small beacon that will teleport the larger beacon to your location on activation."
+	name = "Power Beacon"
+	desc = "When screwed to wiring attached to an electric grid and activated, this large device pulls any \
+			active gravitational singularities or tesla balls towards it. This will not work when the engine is still \
+			in containment. Because of its size, it cannot be carried. Ordering this \
+			sends you a small beacon that will teleport the larger beacon to your location upon activation."
 	reference = "SNGB"
 	item = /obj/item/device/radio/beacon/syndicate
 	cost = 14
