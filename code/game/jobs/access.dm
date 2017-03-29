@@ -74,6 +74,7 @@
 /var/const/access_magistrate = 74
 /var/const/access_minisat = 75
 /var/const/access_mineral_storeroom = 76
+/var/const/access_network = 77
 
 /var/const/access_weapons = 99 //Weapon authorization for secbots
 
@@ -93,13 +94,20 @@
 /var/const/access_cent_bridge = 113//Bridge.
 /var/const/access_cent_commander = 114//Commander's Office/ID computer.
 
-	//The Syndicate
+//The Syndicate
 /var/const/access_syndicate = 150//General Syndicate Access
 /var/const/access_syndicate_leader = 151//Nuke Op Leader Access
 /var/const/access_vox = 152//Vox Access
 
-	//MONEY
+//Trade Stations
+var/const/access_trade_sol = 160
+
+//MONEY
 /var/const/access_crate_cash = 200
+
+//Awaymissions
+/var/const/access_away01 = 271
+
 
 /obj/var/list/req_access = null
 /obj/var/req_access_txt = "0"
@@ -112,6 +120,9 @@
 	if(check_access())
 		return 1
 
+	if(!M)
+		return 0
+
 	var/acc = M.get_access() //see mob.dm
 
 	if(acc == IGNORE_ACCESS)
@@ -121,7 +132,6 @@
 		return check_access_list(acc)
 
 	return 0
-
 
 /obj/item/proc/GetAccess()
 	return list()
@@ -235,7 +245,7 @@
 	            access_theatre, access_research, access_mining, access_mailsorting,
 	            access_heads_vault, access_mining_station, access_xenobiology, access_ce, access_hop, access_hos, access_RC_announce,
 	            access_keycard_auth, access_tcomsat, access_gateway, access_xenoarch, access_paramedic, access_blueshield, access_mechanic,access_weapons,
-	            access_pilot, access_ntrep, access_magistrate, access_mineral_storeroom, access_minisat)
+	            access_pilot, access_ntrep, access_magistrate, access_mineral_storeroom, access_minisat, access_network)
 
 /proc/get_all_centcom_access()
 	return list(access_cent_general, access_cent_living, access_cent_medical, access_cent_security, access_cent_storage, access_cent_shuttles, access_cent_telecomms, access_cent_teleporter, access_cent_specops, access_cent_specops_commander, access_cent_blackops, access_cent_thunder, access_cent_bridge, access_cent_commander)
@@ -260,13 +270,15 @@
 		if(REGION_MEDBAY) //medbay
 			return list(access_medical, access_genetics, access_morgue, access_chemistry, access_psychiatrist, access_virology, access_surgery, access_cmo, access_paramedic)
 		if(REGION_RESEARCH) //research
-			return list(access_research, access_tox, access_tox_storage, access_genetics, access_robotics, access_xenobiology, access_xenoarch, access_minisat, access_rd)
+			return list(access_research, access_tox, access_tox_storage, access_genetics, access_robotics, access_xenobiology, access_xenoarch, access_minisat, access_rd, access_network)
 		if(REGION_ENGINEERING) //engineering and maintenance
 			return list(access_construction, access_maint_tunnels, access_engine, access_engine_equip, access_external_airlocks, access_tech_storage, access_atmospherics, access_minisat, access_ce, access_mechanic)
 		if(REGION_SUPPLY) //supply
 			return list(access_mailsorting, access_mining, access_mining_station, access_mineral_storeroom, access_cargo, access_qm)
 		if(REGION_COMMAND) //command
 			return list(access_heads, access_RC_announce, access_keycard_auth, access_change_ids, access_ai_upload, access_teleporter, access_eva, access_tcomsat, access_gateway, access_all_personal_lockers, access_heads_vault, access_blueshield, access_ntrep, access_hop, access_captain)
+		if(REGION_CENTCOMM) //because why the heck not
+			return get_all_centcom_access() + get_all_accesses()
 
 /proc/get_region_accesses_name(code)
 	switch(code)
@@ -286,6 +298,8 @@
 			return "Supply"
 		if(REGION_COMMAND) //command
 			return "Command"
+		if(REGION_CENTCOMM) //CC
+			return "CentComm"
 
 
 /proc/get_access_desc(A)
@@ -416,6 +430,8 @@
 			return "Keycode Auth. Device"
 		if(access_tcomsat)
 			return "Telecommunications"
+		if(access_network)
+			return "Network Access"
 		if(access_gateway)
 			return "Gateway"
 		if(access_sec_doors)
@@ -495,7 +511,7 @@
 //gets the actual job rank (ignoring alt titles)
 //this is used solely for sechuds
 /obj/proc/GetJobRealName()
-	if (!istype(src, /obj/item/device/pda) && !istype(src,/obj/item/weapon/card/id))
+	if(!istype(src, /obj/item/device/pda) && !istype(src,/obj/item/weapon/card/id))
 		return
 
 	var/rank
@@ -519,7 +535,7 @@
 //gets the alt title, failing that the actual job rank
 //this is unused
 /obj/proc/sdsdsd()	//GetJobDisplayName
-	if (!istype(src, /obj/item/device/pda) && !istype(src,/obj/item/weapon/card/id))
+	if(!istype(src, /obj/item/device/pda) && !istype(src,/obj/item/weapon/card/id))
 		return
 
 	var/assignment
@@ -587,17 +603,17 @@ proc/get_all_job_icons() //For all existing HUD icons
 		var/job_icons = get_all_job_icons()
 		var/centcom = get_all_centcom_jobs()
 
+		if(I.assignment	in centcom) //Return with the NT logo if it is a Centcom job
+			return "Centcom"
+		if(I.rank in centcom)
+			return "Centcom"
+
 		if(I.assignment	in job_icons) //Check if the job has a hud icon
 			return I.assignment
 		if(I.rank in job_icons)
 			return I.rank
 
-		if(I.assignment	in centcom) //Return with the NT logo if it is a Centcom job
-			return "Centcom"
-		if(I.rank in centcom)
-			return "Centcom"
 	else
 		return
 
 	return "Unknown" //Return unknown if none of the above apply
-

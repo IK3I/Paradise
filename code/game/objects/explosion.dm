@@ -57,10 +57,11 @@
 
 			var/close = range(world.view+round(devastation_range,1), epicenter)
 			// to all distanced mobs play a different sound
-			for(var/mob/M in world) if(M.z == epicenter.z) if(!(M in close))
-				// check if the mob can hear
-				if(M.ear_deaf <= 0 || !M.ear_deaf) if(!istype(M.loc,/turf/space))
-					M << 'sound/effects/explosionfar.ogg'
+			for(var/mob/M in world)
+				if(M.z == epicenter.z && !(M in close))
+					// check if the mob can hear
+					if(M.can_hear() && !istype(M.loc,/turf/space))
+						M << 'sound/effects/explosionfar.ogg'
 
 		if(heavy_impact_range > 1)
 			var/datum/effect/system/explosion/E = new/datum/effect/system/explosion()
@@ -89,7 +90,7 @@
 			var/turf/T = A
 			if(!T)
 				continue
-			var/dist = cheap_hypotenuse(T.x, T.y, x0, y0)
+			var/dist = hypotenuse(T.x, T.y, x0, y0)
 
 			if(config.reactionary_explosions)
 				var/turf/Trajectory = T
@@ -206,7 +207,7 @@
 	var/list/wipe_colours = list()
 	for(var/turf/T in spiral_range_turfs(max_range, epicenter))
 		wipe_colours += T
-		var/dist = cheap_hypotenuse(T.x, T.y, x0, y0)
+		var/dist = hypotenuse(T.x, T.y, x0, y0)
 
 		if(newmode == "Yes")
 			var/turf/TT = T
@@ -222,10 +223,10 @@
 		if(dist < dev)
 			T.color = "red"
 			T.maptext = "Dev"
-		else if (dist < heavy)
+		else if(dist < heavy)
 			T.color = "yellow"
 			T.maptext = "Heavy"
-		else if (dist < light)
+		else if(dist < light)
 			T.color = "blue"
 			T.maptext = "Light"
 		else

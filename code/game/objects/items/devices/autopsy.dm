@@ -8,7 +8,7 @@
 	icon = 'icons/obj/autopsy_scanner.dmi'
 	icon_state = ""
 	flags = CONDUCT
-	w_class = 1.0
+	w_class = 1
 	origin_tech = "materials=1;biotech=1"
 	var/list/datum/autopsy_data_scanner/wdata = list()
 	var/list/datum/autopsy_data_scanner/chemtraces = list()
@@ -151,7 +151,7 @@
 	for(var/mob/O in viewers(usr))
 		O.show_message("\red \the [src] rattles and prints out a sheet of paper.", 1)
 
-	playsound(loc, "sound/goonstation/machines/printer_thermal.ogg", 50, 1)
+	playsound(loc, 'sound/goonstation/machines/printer_thermal.ogg', 50, 1)
 	sleep(10)
 
 	var/obj/item/weapon/paper/P = new(usr.loc)
@@ -165,10 +165,12 @@
 			P.loc = usr
 			usr.r_hand = P
 			P.layer = 20
+			P.plane = HUD_PLANE
 		else if(!usr.l_hand)
 			P.loc = usr
 			usr.l_hand = P
 			P.layer = 20
+			P.plane = HUD_PLANE
 
 	if(istype(usr,/mob/living/carbon/human))
 		usr:update_inv_l_hand()

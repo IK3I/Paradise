@@ -132,7 +132,6 @@
 	..()
 	icon_living = icon_state
 	icon_dead = icon_state
-	icon_resting = icon_state
 	access_card = new /obj/item/weapon/card/id(src)
 //This access is so bots can be immediately set to patrol and leave Robotics, instead of having to be let out first.
 	access_card.access += access_robotics
@@ -161,7 +160,7 @@
 	diag_hud.add_hud_to(src)
 	permanent_huds |= diag_hud
 
-/mob/living/simple_animal/bot/update_canmove()
+/mob/living/simple_animal/bot/update_canmove(delay_action_updates = 0)
 	. = ..()
 	if(!on)
 		. = 0
@@ -216,17 +215,10 @@
 	else
 		to_chat(user, "[src] is in pristine condition.")
 
-/mob/living/simple_animal/bot/adjustBruteLoss(amount)
-	. = ..()
-
+/mob/living/simple_animal/bot/adjustHealth(amount)
 	if(amount > 0 && prob(10))
 		new /obj/effect/decal/cleanable/blood/oil(loc)
-
-/mob/living/simple_animal/bot/adjustFireLoss(amount)
-	. = ..()
-
-	if(amount > 0 && prob(5))
-		new /obj/effect/decal/cleanable/blood/oil(loc)
+	return ..(amount)
 
 /mob/living/simple_animal/bot/updatehealth()
 	..()
@@ -262,7 +254,7 @@
 		return
 	apply_damage(M.melee_damage_upper, BRUTE)
 	visible_message("<span class='userdanger'>[M] has [M.attacktext] [src]!</span>")
-	add_logs(M, src, "attacked", admin=0)
+	add_logs(M, src, "attacked", admin=0, print_attack_log = 0)
 	if(prob(10))
 		new /obj/effect/decal/cleanable/blood/oil(loc)
 
@@ -271,6 +263,9 @@
 		interact(H)
 	else
 		return ..()
+		
+/mob/living/simple_animal/bot/attack_ghost(mob/M)
+	interact(M)
 
 /mob/living/simple_animal/bot/attack_ai(mob/user)
 	if(!topic_denied(user))
@@ -331,8 +326,8 @@
 			to_chat(user, "<span class='warning'>Close the access panel before manipulating the personality slot!</span>")
 		else
 			to_chat(user, "<span class='notice'>You attempt to pull [paicard] free...</span>")
-			if(do_after(user, 30, target = src))
-				if (paicard)
+			if(do_after(user, 30 * W.toolspeed, target = src))
+				if(paicard)
 					user.visible_message("<span class='notice'>[user] uses [W] to pull [paicard] out of [bot_name]!</span>","<span class='notice'>You pull [paicard] out of [bot_name] with [W].</span>")
 					ejectpai(user)
 	else
@@ -346,9 +341,7 @@
 				return
 			var/obj/item/weapon/weldingtool/WT = W
 			if(WT.remove_fuel(0, user))
-				adjustBruteLoss(-10)
-				adjustFireLoss(-10)
-				updatehealth()
+				adjustHealth(-10)
 				add_fingerprint(user)
 				user.visible_message("[user] repairs [src]!","<span class='notice'>You repair [src].</span>")
 			else
@@ -426,7 +419,7 @@ Pass the desired type path itself, declaring a temporary var beforehand is not r
 */
 /mob/living/simple_animal/bot/proc/scan(scan_type, old_target, scan_range = DEFAULT_SCAN_RANGE)
 	var/final_result
-	for (var/scan in shuffle(view(scan_range, src))) //Search for something in range!
+	for(var/scan in shuffle(view(scan_range, src))) //Search for something in range!
 		if(!istype(scan, scan_type)) //Check that the thing we found is the type we want!
 			continue //If not, keep searching!
 		if( (scan in ignore_list) || (scan == old_target) ) //Filter for blacklisted elements, usually unreachable or previously processed oness
@@ -516,7 +509,7 @@ Pass a positive integer as an argument to override a bot's default speed.
 			turn_on() //Saves the AI the hassle of having to activate a bot manually.
 		access_card = all_access //Give the bot all-access while under the AI's command.
 		if(message)
-			to_chat(calling_ai, "<span class='notice'>\icon[src] [name] called to [end_area.name]. [path.len-1] meters to destination.</span>")
+			to_chat(calling_ai, "<span class='notice'>[bicon(src)] [name] called to [end_area.name]. [path.len-1] meters to destination.</span>")
 		pathset = 1
 		mode = BOT_RESPONDING
 		tries = 0
@@ -531,7 +524,7 @@ Pass a positive integer as an argument to override a bot's default speed.
 	var/success = bot_move(ai_waypoint, 3)
 	if(!success)
 		if(calling_ai)
-			to_chat(calling_ai, "\icon[src] [get_turf(src) == ai_waypoint ? "<span class='notice'>[src] successfully arrived to waypoint.</span>" : "<span class='danger'>[src] failed to reach waypoint.</span>"]")
+			to_chat(calling_ai, "[bicon(src)] [get_turf(src) == ai_waypoint ? "<span class='notice'>[src] successfully arrived to waypoint.</span>" : "<span class='danger'>[src] failed to reach waypoint.</span>"]")
 			calling_ai = null
 		bot_reset()
 
@@ -798,6 +791,7 @@ Pass a positive integer as an argument to override a bot's default speed.
 	frustration = 0
 
 /mob/living/simple_animal/bot/show_inv()
+	return
 
 /mob/living/simple_animal/bot/proc/show_controls(mob/M)
 	users |= M
@@ -827,7 +821,7 @@ Pass a positive integer as an argument to override a bot's default speed.
 		return 1
 	add_fingerprint(usr)
 
-	if((href_list["power"]) && (bot_core.allowed(usr) || !locked))
+	if((href_list["power"]) && (bot_core.allowed(usr) || !locked || usr.can_admin_interact()))
 		if(on)
 			turn_off()
 		else
@@ -847,6 +841,7 @@ Pass a positive integer as an argument to override a bot's default speed.
 				to_chat(usr, "<span class='warning'>[text_hack]</span>")
 				show_laws()
 				bot_reset()
+				add_logs(usr, src, "hacked")
 			else if(!hacked)
 				to_chat(usr, "<span class='userdanger'>[text_dehack_fail]</span>")
 			else
@@ -855,13 +850,12 @@ Pass a positive integer as an argument to override a bot's default speed.
 				to_chat(usr, "<span class='notice'>[text_dehack]</span>")
 				show_laws()
 				bot_reset()
+				add_logs(usr, src, "dehacked")
 		if("ejectpai")
-			if(paicard && (!locked || issilicon(usr) || check_rights(R_ADMIN, 0, usr)))
+			if(paicard && (!locked || issilicon(usr) || usr.can_admin_interact()))
 				to_chat(usr, "<span class='notice'>You eject [paicard] from [bot_name]</span>")
 				ejectpai(usr)
 	update_controls()
-
-/mob/living/simple_animal/bot/handle_state_icons()
 
 /mob/living/simple_animal/bot/proc/update_icon()
 	icon_state = "[initial(icon_state)][on]"
@@ -878,35 +872,37 @@ Pass a positive integer as an argument to override a bot's default speed.
 		qdel(src)
 
 /mob/living/simple_animal/bot/proc/topic_denied(mob/user) //Access check proc for bot topics! Remember to place in a bot's individual Topic if desired.
+	if(user.can_admin_interact())
+		return 0
 	if(user.incapacitated() || !(issilicon(user) || in_range(src, user)))
 		return 1
 	// 0 for access, 1 for denied.
 	if(emagged == 2) //An emagged bot cannot be controlled by humans, silicons can if one hacked it.
 		if(!hacked) //Manually emagged by a human - access denied to all.
 			return 1
-		else if(!issilicon(user) && !check_rights(R_ADMIN, 0, user)) //Bot is hacked, so only silicons and admins are allowed access.
+		else if(!issilicon(user)) //Bot is hacked, so only silicons are allowed access.
 			return 1
 	return 0
 
 /mob/living/simple_animal/bot/proc/hack(mob/user)
 	var/hack
-	if(issilicon(user) || check_rights(R_ADMIN, 0, user)) //Allows silicons or admins to toggle the emag status of a bot.
+	if(issilicon(user) || user.can_admin_interact()) //Allows silicons or admins to toggle the emag status of a bot.
 		hack += "[emagged == 2 ? "Software compromised! Unit may exhibit dangerous or erratic behavior." : "Unit operating normally. Release safety lock?"]<BR>"
-		hack += "Harm Prevention Safety System: <A href='?src=\ref[src];operation=hack'>[emagged ? "<span class='bad'>DANGER</span>" : "Engaged"]</A><BR>"
+		hack += "Harm Prevention Safety System: <A href='?src=[UID()];operation=hack'>[emagged ? "<span class='bad'>DANGER</span>" : "Engaged"]</A><BR>"
 	else if(!locked) //Humans with access can use this option to hide a bot from the AI's remote control panel and PDA control.
-		hack += "Remote network control radio: <A href='?src=\ref[src];operation=remote'>[remote_disabled ? "Disconnected" : "Connected"]</A><BR>"
+		hack += "Remote network control radio: <A href='?src=[UID()];operation=remote'>[remote_disabled ? "Disconnected" : "Connected"]</A><BR>"
 	return hack
 
 /mob/living/simple_animal/bot/proc/showpai(mob/user)
 	var/eject = ""
-	if(!locked || issilicon(usr) || check_rights(R_ADMIN, 0, user))
+	if(!locked || issilicon(usr) || user.can_admin_interact())
 		if(paicard || allow_pai)
 			eject += "Personality card status: "
 			if(paicard)
 				if(client)
-					eject += "<A href='?src=\ref[src];operation=ejectpai'>Active</A>"
+					eject += "<A href='?src=[UID()];operation=ejectpai'>Active</A>"
 				else
-					eject += "<A href='?src=\ref[src];operation=ejectpai'>Inactive</A>"
+					eject += "<A href='?src=[UID()];operation=ejectpai'>Inactive</A>"
 			else if(!allow_pai || key)
 				eject += "Unavailable"
 			else
@@ -1020,3 +1016,6 @@ Pass a positive integer as an argument to override a bot's default speed.
 			throw_alert("temp", /obj/screen/alert/cold/robot, 1)
 		else
 			throw_alert("temp", /obj/screen/alert/cold/robot, 2)
+
+/mob/living/simple_animal/bot/is_mechanical()
+	return 1

@@ -24,6 +24,7 @@
 #define FIRELOSS 2
 #define TOXLOSS 4
 #define OXYLOSS 8
+#define SHAME 16
 
 //Bitflags defining which status effects could be or are inflicted on a mob
 #define CANSTUN		1
@@ -53,3 +54,19 @@
 #define AI_ON		1
 #define AI_IDLE		2
 #define AI_OFF		3
+
+//Attack types for checking shields/hit reactions
+
+#define MELEE_ATTACK 1
+#define UNARMED_ATTACK 2
+#define PROJECTILE_ATTACK 3
+#define THROWN_PROJECTILE_ATTACK 4
+#define LEAP_ATTACK 5
+
+//Gun Stuff
+ #define SAWN_INTACT  0
+ #define SAWN_OFF     1
+
+ #define WEAPON_LIGHT 0
+ #define WEAPON_MEDIUM 1
+ #define WEAPON_HEAVY 2

@@ -8,14 +8,17 @@
 	gender = PLURAL
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "paper"
+	item_state = "paper"
 	throwforce = 0
-	w_class = 1.0
+	w_class = 1
 	throw_range = 1
 	throw_speed = 1
 	layer = 4
 	pressure_resistance = 0
 	slot_flags = SLOT_HEAD
 	body_parts_covered = HEAD
+	burn_state = FLAMMABLE
+	burntime = 5
 	attack_verb = list("bapped")
 
 	var/info		//What's actually written on the paper.
@@ -28,6 +31,9 @@
 	var/offset_y[0] //usage by the photocopier
 	var/rigged = 0
 	var/spam_flag = 0
+	var/contact_poison // Reagent ID to transfer on contact
+	var/contact_poison_volume = 0
+	var/contact_poison_poisoner = null
 
 	var/const/deffont = "Verdana"
 	var/const/signfont = "Times New Roman"
@@ -183,8 +189,8 @@
 	info_links = info
 	var/i = 0
 	for(i=1,i<=fields,i++)
-		addtofield(i, "<font face=\"[deffont]\"><A href='?src=\ref[src];write=[i]'>write</A></font>", 1)
-	info_links = info_links + "<font face=\"[deffont]\"><A href='?src=\ref[src];write=end'>write</A></font>"
+		addtofield(i, "<font face=\"[deffont]\"><A href='?src=[UID()];write=[i]'>write</A></font>", 1)
+	info_links = info_links + "<font face=\"[deffont]\"><A href='?src=[UID()];write=end'>write</A></font>"
 
 
 /obj/item/weapon/paper/proc/clearpaper()
@@ -196,62 +202,8 @@
 	update_icon()
 
 
-/obj/item/weapon/paper/proc/parsepencode(var/t, var/obj/item/weapon/pen/P, mob/user as mob, var/iscrayon = 0)
-//	t = sanitize(copytext(t),1,MAX_MESSAGE_LEN)
-
-	t = replacetext(t, "\[center\]", "<center>")
-	t = replacetext(t, "\[/center\]", "</center>")
-	t = replacetext(t, "\[br\]", "<BR>")
-	t = replacetext(t, "\[b\]", "<B>")
-	t = replacetext(t, "\[/b\]", "</B>")
-	t = replacetext(t, "\[i\]", "<I>")
-	t = replacetext(t, "\[/i\]", "</I>")
-	t = replacetext(t, "\[u\]", "<U>")
-	t = replacetext(t, "\[/u\]", "</U>")
-	t = replacetext(t, "\[large\]", "<font size=\"4\">")
-	t = replacetext(t, "\[/large\]", "</font>")
-	t = replacetext(t, "\[sign\]", "<font face=\"[signfont]\"><i>[user ? user.real_name : "Anonymous"]</i></font>")
-	t = replacetext(t, "\[field\]", "<span class=\"paper_field\"></span>")
-
-	t = replacetext(t, "\[h1\]", "<H1>")
-	t = replacetext(t, "\[/h1\]", "</H1>")
-	t = replacetext(t, "\[h2\]", "<H2>")
-	t = replacetext(t, "\[/h2\]", "</H2>")
-	t = replacetext(t, "\[h3\]", "<H3>")
-	t = replacetext(t, "\[/h3\]", "</H3>")
-
-	if(!iscrayon)
-		t = replacetext(t, "\[*\]", "<li>")
-		t = replacetext(t, "\[hr\]", "<HR>")
-		t = replacetext(t, "\[small\]", "<font size = \"1\">")
-		t = replacetext(t, "\[/small\]", "</font>")
-		t = replacetext(t, "\[list\]", "<ul>")
-		t = replacetext(t, "\[/list\]", "</ul>")
-		t = replacetext(t, "\[table\]", "<table border=1 cellspacing=0 cellpadding=3 style='border: 1px solid black;'>")
-		t = replacetext(t, "\[/table\]", "</td></tr></table>")
-		t = replacetext(t, "\[grid\]", "<table>")
-		t = replacetext(t, "\[/grid\]", "</td></tr></table>")
-		t = replacetext(t, "\[row\]", "</td><tr>")
-		t = replacetext(t, "\[cell\]", "<td>")
-		t = replacetext(t, "\[logo\]", "<img src = ntlogo.png>")
-
-		t = "<font face=\"[deffont]\" color=[P ? P.colour : "black"]>[t]</font>"
-	else // If it is a crayon, and he still tries to use these, make them empty!
-		t = replacetext(t, "\[*\]", "")
-		t = replacetext(t, "\[hr\]", "")
-		t = replacetext(t, "\[small\]", "")
-		t = replacetext(t, "\[/small\]", "")
-		t = replacetext(t, "\[list\]", "")
-		t = replacetext(t, "\[/list\]", "")
-		t = replacetext(t, "\[table\]", "")
-		t = replacetext(t, "\[/table\]", "")
-		t = replacetext(t, "\[row\]", "")
-		t = replacetext(t, "\[cell\]", "")
-		t = replacetext(t, "\[logo\]", "")
-
-		t = "<font face=\"[crayonfont]\" color=[P ? P.colour : "black"]><b>[t]</b></font>"
-
-	t = copytext(t, 1, MAX_PAPER_MESSAGE_LEN)
+/obj/item/weapon/paper/proc/parsepencode(var/t, var/obj/item/weapon/pen/P, mob/user as mob)
+	t = pencode_to_html(t, usr, P, TRUE, TRUE, deffont, signfont, crayonfont)
 
 //Count the fields
 	var/laststart = 1
@@ -289,30 +241,6 @@
 		\[hr\] : Adds a horizontal rule.
 	</BODY></HTML>"}, "window=paper_help")
 
-/obj/item/weapon/paper/proc/burnpaper(obj/item/weapon/lighter/P, mob/user)
-	var/class = "<span class='warning'>"
-
-	if(P.lit && !user.restrained())
-		if(istype(P, /obj/item/weapon/lighter/zippo))
-			class = "<span class='rose'>"
-
-		user.visible_message("[class][user] holds \the [P] up to \the [src], it looks like \he's trying to burn it!", \
-		"[class]You hold \the [P] up to \the [src], burning it slowly.")
-
-		spawn(20)
-			if(get_dist(src, user) < 2 && user.get_active_hand() == P && P.lit)
-				user.visible_message("[class][user] burns right through \the [src], turning it to ash. It flutters through the air before settling on the floor in a heap.", \
-				"[class]You burn right through \the [src], turning it to ash. It flutters through the air before settling on the floor in a heap.")
-
-				if(user.get_inactive_hand() == src)
-					user.unEquip(src)
-
-				new /obj/effect/decal/cleanable/ash(get_turf(src))
-				qdel(src)
-
-			else
-				to_chat(user, "\red You must hold \the [P] steady to burn \the [src].")
-
 /obj/item/weapon/paper/Topic(href, href_list)
 	..()
 	if(!usr || (usr.stat || usr.restrained()))
@@ -324,12 +252,10 @@
 		//var/t =  strip_html_simple(input("Enter what you want to write:", "Write", null, null)  as message, MAX_MESSAGE_LEN)
 		var/t =  input("Enter what you want to write:", "Write", null, null)  as message
 		var/obj/item/i = usr.get_active_hand() // Check to see if he still got that darn pen, also check if he's using a crayon or pen.
-		var/iscrayon = 0
 		add_hiddenprint(usr) // No more forging nasty documents as someone else, you jerks
 		if(!istype(i, /obj/item/weapon/pen))
 			if(!istype(i, /obj/item/toy/crayon))
 				return
-			iscrayon = 1
 
 
 		// if paper is not in usr, then it must be near them, or in a clipboard or folder, which must be in or near usr
@@ -347,8 +273,7 @@
 				return
 */
 		t = html_encode(t)
-		t = replacetext(t, "\n", "<BR>")
-		t = parsepencode(t, i, usr, iscrayon) // Encode everything from pencode to html
+		t = parsepencode(t, i, usr) // Encode everything from pencode to html
 
 		if(id!="end")
 			addtofield(text2num(id), t) // He wants to edit a field, let him.
@@ -356,13 +281,19 @@
 			info += t // Oh, he wants to edit to the end of the file, let him.
 			updateinfolinks()
 
+		i.on_write(src,usr)
+
 		show_content(usr, forceshow = 1, infolinks = 1)
 
 		update_icon()
 
 
-/obj/item/weapon/paper/attackby(obj/item/weapon/P as obj, mob/user as mob, params)
+/obj/item/weapon/paper/attackby(obj/item/weapon/P, mob/living/user, params)
 	..()
+
+	if(burn_state == ON_FIRE)
+		return
+
 	var/clown = 0
 	if(user.mind && (user.mind.assigned_role == "Clown"))
 		clown = 1
@@ -374,42 +305,44 @@
 		return
 
 	if(istype(P, /obj/item/weapon/paper) || istype(P, /obj/item/weapon/photo))
-		if (istype(P, /obj/item/weapon/paper/carbon))
+		if(istype(P, /obj/item/weapon/paper/carbon))
 			var/obj/item/weapon/paper/carbon/C = P
-			if (!C.iscopy && !C.copied)
+			if(!C.iscopy && !C.copied)
 				to_chat(user, "<span class='notice'>Take off the carbon copy first.</span>")
 				add_fingerprint(user)
 				return
 		var/obj/item/weapon/paper_bundle/B = new(src.loc)
-		if (name != "paper")
+		if(name != "paper")
 			B.name = name
-		else if (P.name != "paper" && P.name != "photo")
+		else if(P.name != "paper" && P.name != "photo")
 			B.name = P.name
 		user.unEquip(P)
-		if (istype(user, /mob/living/carbon/human))
+		if(istype(user, /mob/living/carbon/human))
 			var/mob/living/carbon/human/h_user = user
-			if (h_user.r_hand == src)
+			if(h_user.r_hand == src)
 				h_user.unEquip(src)
 				h_user.put_in_r_hand(B)
-			else if (h_user.l_hand == src)
+			else if(h_user.l_hand == src)
 				h_user.unEquip(src)
 				h_user.put_in_l_hand(B)
-			else if (h_user.l_store == src)
+			else if(h_user.l_store == src)
 				h_user.unEquip(src)
 				B.loc = h_user
 				B.layer = 20
+				B.plane = HUD_PLANE
 				h_user.l_store = B
 				h_user.update_inv_pockets()
-			else if (h_user.r_store == src)
+			else if(h_user.r_store == src)
 				h_user.unEquip(src)
 				B.loc = h_user
 				B.layer = 20
+				B.plane = HUD_PLANE
 				h_user.r_store = B
 				h_user.update_inv_pockets()
-			else if (h_user.head == src)
+			else if(h_user.head == src)
 				h_user.unEquip(src)
 				h_user.put_in_hands(B)
-			else if (!istype(src.loc, /turf))
+			else if(!istype(src.loc, /turf))
 				src.loc = get_turf(h_user)
 				if(h_user.client)	h_user.client.screen -= src
 				h_user.put_in_hands(B)
@@ -441,11 +374,27 @@
 
 		to_chat(user, "<span class='notice'>You stamp the paper with your rubber stamp.</span>")
 
-	else if(istype(P, /obj/item/weapon/lighter))
-		burnpaper(P, user)
+	if(is_hot(P))
+		if((CLUMSY in user.mutations) && prob(10))
+			user.visible_message("<span class='warning'>[user] accidentally ignites themselves!</span>", \
+								"<span class='userdanger'>You miss the paper and accidentally light yourself on fire!</span>")
+			user.unEquip(P)
+			user.adjust_fire_stacks(1)
+			user.IgniteMob()
+			return
+
+		if(!Adjacent(user)) //to prevent issues as a result of telepathically lighting a paper
+			return
+
+		user.unEquip(src)
+		user.visible_message("<span class='danger'>[user] lights [src] ablaze with [P]!</span>", "<span class='danger'>You light [src] on fire!</span>")
+		fire_act()
 
 	add_fingerprint(user)
-	return
+
+/obj/item/weapon/paper/fire_act()
+	..()
+	info = "[stars(info)]"
 
 /obj/item/weapon/paper/proc/stamp(var/obj/item/weapon/stamp/S)
 	stamps += (!stamps || stamps == "" ? "<HR>" : "") + "<img src=large_[S.icon_state].png>"
@@ -575,7 +524,7 @@
 
 /obj/item/weapon/paper/armory
 	name = "paper- 'Armory Inventory'"
-	info = "4 Deployable Barriers<br>4 Portable Flashers<br>1 Mechanical Toolbox<br>2 Boxes of Spare Handcuffs<br>1 Box of Flashbangs<br>1 Box of Spare R.O.B.U.S.T. Cartridges<br>1 Tracking Implant Kit<br>1 Chemical Implant Kit<br>1 Box of Tear Gas Grenades<br>1 Explosive Ordnance Disposal Suit<br>1 Biohazard Suit<br>6 Gas Masks<br>1 Lockbox of Loyalty Implants<br>1 Ion Rifle<br>3 Sets of Riot Equipment<br>2 Sets of Security Hardsuits<br>1 Ablative Armor Vest<br>3 Bulletproof Vests<br>3 Helmets<br><br>2 Riot Shotguns<br>2 Boxes of Beanbag Shells<br>3 Laser Guns<br>3 Energy Guns<br>3 Advanced Tasers"
+	info = "4 Deployable Barriers<br>4 Portable Flashers<br>1 Mechanical Toolbox<br>2 Boxes of Spare Handcuffs<br>1 Box of Flashbangs<br>1 Box of Spare R.O.B.U.S.T. Cartridges<br>1 Tracking Implant Kit<br>1 Chemical Implant Kit<br>1 Box of Tear Gas Grenades<br>1 Explosive Ordnance Disposal Suit<br>1 Biohazard Suit<br>6 Gas Masks<br>1 Lockbox of Mindshield Implants<br>1 Ion Rifle<br>3 Sets of Riot Equipment<br>2 Sets of Security Hardsuits<br>1 Ablative Armor Vest<br>3 Bulletproof Vests<br>3 Helmets<br><br>2 Riot Shotguns<br>2 Boxes of Beanbag Shells<br>3 Laser Guns<br>3 Energy Guns<br>3 Advanced Tasers"
 
 /obj/item/weapon/paper/firingrange
 	name = "paper- 'Firing Range Instructions'"
@@ -618,3 +567,104 @@
 
 /obj/item/weapon/paper/crumpled/bloody
 	icon_state = "scrap_bloodied"
+
+/obj/item/weapon/paper/evilfax
+	name = "Centcomm Reply"
+	info = ""
+	var/mytarget = null
+	var/myeffect = null
+	var/used = 0
+	var/countdown = 60
+	var/activate_on_timeout = 0
+
+/obj/item/weapon/paper/evilfax/show_content(var/mob/user, var/forceshow = 0, var/forcestars = 0, var/infolinks = 0, var/view = 1)
+	if(user == mytarget)
+		if(istype(user, /mob/living/carbon))
+			var/mob/living/carbon/C = user
+			evilpaper_specialaction(C)
+			..()
+		else
+			// This should never happen, but just in case someone is adminbussing
+			evilpaper_selfdestruct()
+	else
+		if(mytarget)
+			to_chat(user,"<span class='notice'>This page appears to be covered in some sort of bizzare code. The only bit you recognize is the name of [mytarget]. Perhaps [mytarget] can make sense of it?</span>")
+		else
+			evilpaper_selfdestruct()
+
+
+/obj/item/weapon/paper/evilfax/New()
+	..()
+	processing_objects.Add(src)
+
+
+/obj/item/weapon/paper/evilfax/Destroy()
+	processing_objects.Remove(src)
+	if(mytarget && !used)
+		var/mob/living/carbon/target = mytarget
+		target.ForceContractDisease(new /datum/disease/transformation/corgi(0))
+	return ..()
+
+
+/obj/item/weapon/paper/evilfax/process()
+	if(!countdown)
+		if(mytarget)
+			if(activate_on_timeout)
+				evilpaper_specialaction(mytarget)
+			else
+				message_admins("[mytarget] ignored an evil fax until it timed out.")
+		else
+			message_admins("Evil paper '[src]' timed out, after not being assigned a target.")
+		used = 1
+		evilpaper_selfdestruct()
+	else
+		countdown--
+
+/obj/item/weapon/paper/evilfax/proc/evilpaper_specialaction(var/mob/living/carbon/target)
+	spawn(30)
+		if(istype(target,/mob/living/carbon))
+			if(myeffect == "Borgification")
+				to_chat(target,"<span class='userdanger'>You seem to comprehend the AI a little better. Why are your muscles so stiff?</span>")
+				target.ForceContractDisease(new /datum/disease/transformation/robot(0))
+			else if(myeffect == "Corgification")
+				to_chat(target,"<span class='userdanger'>You hear distant howling as the world seems to grow bigger around you. Boy, that itch sure is getting worse!</span>")
+				target.ForceContractDisease(new /datum/disease/transformation/corgi(0))
+			else if(myeffect == "Death By Fire")
+				to_chat(target,"<span class='userdanger'>You feel hotter than usual. Maybe you should lowe-wait, is that your hand melting?</span>")
+				var/turf/simulated/T = get_turf(target)
+				new /obj/effect/hotspot(T)
+				target.adjustFireLoss(150) // hard crit, the burning takes care of the rest.
+			else if(myeffect == "Total Brain Death")
+				to_chat(target,"<span class='userdanger'>You see a message appear in front of you in bright red letters: <b>YHWH-3 ACTIVATED. TERMINATION IN 3 SECONDS</b></span>")
+				target.mutations.Add(NOCLONE)
+				target.adjustBrainLoss(125)
+			else if(myeffect == "Honk Tumor")
+				if(!target.get_int_organ(/obj/item/organ/internal/honktumor))
+					var/obj/item/organ/internal/organ = new /obj/item/organ/internal/honktumor
+					to_chat(target,"<span class='userdanger'>Life seems funnier, somehow.</span>")
+					organ.insert(target)
+			else if(myeffect == "Cluwne")
+				if(istype(target, /mob/living/carbon/human))
+					var/mob/living/carbon/human/H = target
+					to_chat(H, "<span class='userdanger'>You feel surrounded by sadness. Sadness... and HONKS!</span>")
+					H.makeCluwne()
+			else if(myeffect == "Demotion Notice")
+				event_announcement.Announce("[mytarget] is hereby demoted to the rank of Civilian. Process this demotion immediately. Failure to comply with these orders is grounds for termination.","CC Demotion Order")
+			else
+				message_admins("Evil paper [src] was activated without a proper effect set! This is a bug.")
+		used = 1
+		evilpaper_selfdestruct()
+
+/obj/item/weapon/paper/evilfax/proc/evilpaper_selfdestruct()
+	visible_message("<span class='danger'>[src] spontaneously catches fire, and burns up!</span>")
+	qdel(src)
+
+/obj/item/weapon/paper/pickup(user)
+	if(contact_poison && ishuman(user))
+		var/mob/living/carbon/human/H = user
+		var/obj/item/clothing/gloves/G = H.gloves
+		if(!istype(G) || G.transfer_prints)
+			H.reagents.add_reagent(contact_poison, contact_poison_volume)
+			contact_poison = null
+			add_logs(user, src, "picked up [src], the paper poisoned by [contact_poison_poisoner]")
+	..()

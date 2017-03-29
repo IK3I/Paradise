@@ -7,7 +7,6 @@
 	helptext = "Grants us thermal vision or flash protection. We will become a lot more vulnerable to flash-based devices while thermal vision is active."
 	chemical_cost = 0
 	dna_cost = 2 //Would be 1 without thermal vision
-	var/active = 0 //Whether or not vision is enhanced
 
 /obj/effect/proc_holder/changeling/augmented_eyesight/sting_action(mob/living/carbon/human/user)
 	if(!istype(user))
@@ -47,7 +46,7 @@
 /obj/item/organ/internal/cyberimp/eyes/shield/ling/on_life()
 	..()
 	var/obj/item/organ/internal/eyes/E = owner.get_int_organ(/obj/item/organ/internal/eyes)
-	if(owner.eye_blind || owner.eye_blurry || (owner.sdisabilities & BLIND) || (owner.disabilities & NEARSIGHTED) || (E.damage > 0))
+	if(owner.eye_blind || owner.eye_blurry || (owner.disabilities & BLIND) || (owner.disabilities & NEARSIGHTED) || (E.damage > 0))
 		owner.reagents.add_reagent("oculine", 1)
 
 /obj/item/organ/internal/cyberimp/eyes/shield/ling/prepare_eat()

@@ -28,6 +28,8 @@
 	var/alarm_on = 0
 	var/busy = 0
 	var/emped = 0  //Number of consecutive EMP's on this camera
+	
+	var/toggle_message = 'sound/items/Wirecutter.ogg'
 
 /obj/machinery/camera/New()
 	..()
@@ -42,7 +44,8 @@
 	cameranet.addCamera(src)
 
 /obj/machinery/camera/initialize()
-	if(z == ZLEVEL_STATION && prob(3) && !start_active)
+	..()
+	if(is_station_level(z) && prob(3) && !start_active)
 		toggle_cam()
 
 /obj/machinery/camera/Destroy()
@@ -89,9 +92,9 @@
 							if(!qdeleted(src))
 								cancelCameraAlarm()
 			for(var/mob/O in mob_list)
-				if (O.client && O.client.eye == src)
+				if(O.client && O.client.eye == src)
 					O.unset_machine()
-					O.reset_view(null)
+					O.reset_perspective(null)
 					to_chat(O, "The screen bursts into static.")
 			..()
 
@@ -106,8 +109,12 @@
 /obj/machinery/camera/blob_act()
 	qdel(src)
 	return
+	
+/obj/machinery/camera/attack_ghost(mob/user)
+	if(panel_open)
+		wires.Interact(user)
 
-/obj/machinery/camera/attack_alien(mob/living/carbon/alien/humanoid/user as mob)
+/obj/machinery/camera/attack_alien(mob/living/carbon/alien/humanoid/user)
 	if(!istype(user))
 		return
 	user.do_attack_animation(src)
@@ -122,7 +129,7 @@
 	src.view_range = num
 	cameranet.updateVisibility(src, 0)
 
-/obj/machinery/camera/attackby(W as obj, mob/living/user as mob, params)
+/obj/machinery/camera/attackby(obj/item/W, mob/living/user as mob, params)
 	var/msg = "<span class='notice'>You attach [W] into the assembly inner circuits.</span>"
 	var/msg2 = "<span class='notice'>The camera already has that upgrade!</span>"
 
@@ -133,7 +140,7 @@
 		panel_open = !panel_open
 		user.visible_message("<span class='warning'>[user] screws the camera's panel [panel_open ? "open" : "closed"]!</span>",
 		"<span class='notice'>You screw the camera's panel [panel_open ? "open" : "closed"].</span>")
-		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
+		playsound(src.loc, W.usesound, 50, 1)
 
 	else if((istype(W, /obj/item/weapon/wirecutters) || istype(W, /obj/item/device/multitool)) && panel_open)
 		wires.Interact(user)
@@ -151,6 +158,9 @@
 			qdel(src)
 			return
 	else if(istype(W, /obj/item/device/analyzer) && panel_open) //XRay
+		if(!user.unEquip(W))
+			to_chat(user, "<span class='warning'>[W] is stuck!</span>")
+			return
 		if(!isXRay())
 			upgradeXRay()
 			qdel(W)
@@ -159,6 +169,9 @@
 			to_chat(user, "[msg2]")
 
 	else if(istype(W, /obj/item/stack/sheet/mineral/plasma) && panel_open)
+		if(!user.unEquip(W))
+			to_chat(user, "<span class='warning'>[W] is stuck!</span>")
+			return
 		if(!isEmpProof())
 			upgradeEmpProof()
 			to_chat(user, "[msg]")
@@ -166,6 +179,8 @@
 		else
 			to_chat(user, "[msg2]")
 	else if(istype(W, /obj/item/device/assembly/prox_sensor) && panel_open)
+		if(!user.unEquip(W))
+			return
 		if(!isMotion())
 			upgradeMotion()
 			to_chat(user, "[msg]")
@@ -174,7 +189,7 @@
 			to_chat(user, "[msg2]")
 
 	// OTHER
-	else if ((istype(W, /obj/item/weapon/paper) || istype(W, /obj/item/device/pda)) && isliving(user))
+	else if((istype(W, /obj/item/weapon/paper) || istype(W, /obj/item/device/pda)) && isliving(user))
 		var/mob/living/U = user
 		var/obj/item/weapon/paper/X = null
 		var/obj/item/device/pda/P = null
@@ -201,14 +216,14 @@
 				if(U.name == "Unknown")
 					to_chat(AI, "<b>[U]</b> holds <a href='?_src_=usr;show_paper=1;'>\a [itemname]</a> up to one of your cameras ...")
 				else
-					to_chat(AI, "<b><a href='?src=\ref[AI];track=[html_encode(U.name)]'>[U]</a></b> holds <a href='?_src_=usr;show_paper=1;'>\a [itemname]</a> up to one of your cameras ...")
+					to_chat(AI, "<b><a href='?src=[AI.UID()];track=[html_encode(U.name)]'>[U]</a></b> holds <a href='?_src_=usr;show_paper=1;'>\a [itemname]</a> up to one of your cameras ...")
 				AI.last_paper_seen = "<HTML><HEAD><TITLE>[itemname]</TITLE></HEAD><BODY><TT>[info]</TT></BODY></HTML>"
-			else if (O.client && O.client.eye == src)
+			else if(O.client && O.client.eye == src)
 				to_chat(O, "[U] holds \a [itemname] up to one of the cameras ...")
 				O << browse(text("<HTML><HEAD><TITLE>[]</TITLE></HEAD><BODY><TT>[]</TT></BODY></HTML>", itemname, info), text("window=[]", itemname))
 
-	else if (istype(W, /obj/item/device/camera_bug))
-		if (!src.can_use())
+	else if(istype(W, /obj/item/device/camera_bug))
+		if(!src.can_use())
 			to_chat(user, "<span class='notice'>Camera non-functional.</span>")
 			return
 		if(istype(src.bug))
@@ -225,7 +240,7 @@
 		var/datum/effect/system/spark_spread/spark_system = new /datum/effect/system/spark_spread()
 		spark_system.set_up(5, 0, loc)
 		spark_system.start()
-		playsound(loc, 'sound/weapons/blade1.ogg', 50, 1)
+		playsound(loc, W.usesound, 50, 1)
 		playsound(loc, "sparks", 50, 1)
 		visible_message("<span class='notice'>[user] has sliced the camera apart with an energy blade!</span>")
 		qdel(src)
@@ -262,15 +277,15 @@
 		else
 			visible_message("<span class='danger'>\The [src] [change_msg]!</span>")
 
-		playsound(src.loc, 'sound/items/Wirecutter.ogg', 100, 1)
+		playsound(src.loc, toggle_message, 100, 1)
 
 	// now disconnect anyone using the camera
 	//Apparently, this will disconnect anyone even if the camera was re-activated.
 	//I guess that doesn't matter since they can't use it anyway?
 	for(var/mob/O in player_list)
-		if (O.client && O.client.eye == src)
+		if(O.client && O.client.eye == src)
 			O.unset_machine()
-			O.reset_view(null)
+			O.reset_perspective(null)
 			to_chat(O, "The screen bursts into static.")
 
 /obj/machinery/camera/proc/triggerCameraAlarm(var/duration = 0)
@@ -342,9 +357,9 @@
 		return 0
 
 	to_chat(user, "<span class='notice'>You start to weld [src]...</span>")
-	playsound(src.loc, 'sound/items/Welder.ogg', 50, 1)
+	playsound(src.loc, WT.usesound, 50, 1)
 	busy = 1
-	if(do_after(user, 100, target = src))
+	if(do_after(user, 100 * WT.toolspeed, target = src))
 		busy = 0
 		if(!WT.isOn())
 			return 0
@@ -368,10 +383,29 @@
 	cam["name"] = sanitize(c_tag)
 	cam["deact"] = !can_use()
 	cam["camera"] = "\ref[src]"
-	cam["x"] = T.x
-	cam["y"] = T.y
-	cam["z"] = T.z
+	if(T)
+		cam["x"] = T.x
+		cam["y"] = T.y
+		cam["z"] = T.z
+	else
+		cam["x"] = 0
+		cam["y"] = 0
+		cam["z"] = 0
 	return cam
+
+/obj/machinery/camera/get_remote_view_fullscreens(mob/user)
+	if(view_range == short_range) //unfocused
+		user.overlay_fullscreen("remote_view", /obj/screen/fullscreen/impaired, 2)
+
+/obj/machinery/camera/update_remote_sight(mob/living/user)
+	user.see_invisible = SEE_INVISIBLE_LIVING //can't see ghosts through cameras
+	if(isXRay())
+		user.sight |= (SEE_TURFS|SEE_MOBS|SEE_OBJS)
+		user.see_in_dark = max(user.see_in_dark, 8)
+	else
+		user.sight = 0
+		user.see_in_dark = 2
+	return 1
 
 /obj/machinery/camera/portable //Cameras which are placed inside of things, such as helmets.
 	var/turf/prev_turf

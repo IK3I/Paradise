@@ -52,7 +52,7 @@
 	if(istype(I, /obj/item/weapon/crowbar))
 		to_chat(user, "<span class='notice'>You start to [cistern ? "replace the lid on the cistern" : "lift the lid off the cistern"]...</span>")
 		playsound(loc, 'sound/effects/stonedoor_openclose.ogg', 50, 1)
-		if(do_after(user, 30, target = src))
+		if(do_after(user, 30 * I.toolspeed, target = src))
 			user.visible_message("[user] [cistern ? "replaces the lid on the cistern" : "lifts the lid off the cistern"]!", "<span class='notice'>You [cistern ? "replace the lid on the cistern" : "lift the lid off the cistern"]!</span>", "<span class='italics'>You hear grinding porcelain.</span>")
 			cistern = !cistern
 			update_icon()
@@ -63,8 +63,11 @@
 			return
 		var/obj/item/weapon/reagent_containers/RG = I
 		if(RG.is_open_container())
-			RG.reagents.add_reagent("toiletwater", min(RG.volume - RG.reagents.total_volume, RG.amount_per_transfer_from_this))
-			to_chat(user, "<span class='notice'>You fill [RG] from [src]. Gross.</span>")
+			if(RG.reagents.total_volume >= RG.volume)
+				to_chat(user, "<span class='warning'>\The [RG] is full.</span>")
+			else
+				RG.reagents.add_reagent("toiletwater", min(RG.volume - RG.reagents.total_volume, RG.amount_per_transfer_from_this))
+				to_chat(user, "<span class='notice'>You fill [RG] from [src]. Gross.</span>")
 			return
 
 	if(istype(I, /obj/item/weapon/grab))
@@ -171,11 +174,11 @@
 	on = !on
 	update_icon()
 	if(on)
-		if (M.loc == loc)
+		if(M.loc == loc)
 			wash(M)
 			check_heat(M)
 			M.water_act(100, convertHeat(), src)
-		for (var/atom/movable/G in src.loc)
+		for(var/atom/movable/G in src.loc)
 			G.clean_blood()
 			G.water_act(100, convertHeat(), src)
 
@@ -246,12 +249,16 @@
 /obj/machinery/shower/proc/wash(atom/movable/O as obj|mob)
 	if(!on) return
 
+	if(istype(O, /obj/item))
+		var/obj/item/I = O
+		I.extinguish()
+
 	O.water_act(100, convertHeat(), src)
 
 	if(isliving(O))
 		var/mob/living/L = O
 		L.ExtinguishMob()
-		L.fire_stacks = -20 //Douse ourselves with water to avoid fire more easily
+		L.adjust_fire_stacks(-20) //Douse ourselves with water to avoid fire more easily
 		to_chat(L, "<span class='warning'>You've been drenched in water!</span>")
 		if(iscarbon(O))
 			var/mob/living/carbon/M = O
@@ -280,9 +287,9 @@
 					washears = !(H.head.flags_inv & HIDEEARS)
 
 				if(H.wear_mask)
-					if (washears)
+					if(washears)
 						washears = !(H.wear_mask.flags_inv & HIDEEARS)
-					if (washglasses)
+					if(washglasses)
 						washglasses = !(H.wear_mask.flags_inv & HIDEEYES)
 
 				if(H.head)
@@ -379,10 +386,10 @@
 	if(!Adjacent(user))
 		return
 
-	if (ishuman(user))
+	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		var/obj/item/organ/external/temp = H.organs_by_name["r_hand"]
-		if (user.hand)
+		if(user.hand)
 			temp = H.organs_by_name["l_hand"]
 		if(temp && !temp.is_usable())
 			to_chat(user, "<span class='notice'>You try to move your [temp.name], but cannot!")
@@ -413,8 +420,7 @@
 			H.lip_style = null //Washes off lipstick
 			H.lip_color = initial(H.lip_color)
 			H.regenerate_icons()
-		user.drowsyness -= rand(2,3) //Washing your face wakes you up if you're falling asleep
-		user.drowsyness = Clamp(user.drowsyness, 0, INFINITY)
+		user.AdjustDrowsy(-rand(2,3)) //Washing your face wakes you up if you're falling asleep
 	else
 		user.clean_blood()
 
@@ -431,7 +437,7 @@
 	var/wateract = 0
 	wateract = (O.wash(user, src))
 	busy = 0
-	if (wateract)
+	if(wateract)
 		O.water_act(20,310.15,src)
 
 /obj/structure/sink/kitchen
@@ -452,4 +458,3 @@
 	icon_state = "puddle-splash"
 	..()
 	icon_state = "puddle"
-

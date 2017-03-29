@@ -8,6 +8,8 @@
 	var/list/attack_verb_on = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 	no_embed = 1 // Physically impossible for energy weapons to embed themselves into people, this should fix that. -- Dave
 	hitsound = 'sound/weapons/blade1.ogg' // Probably more appropriate than the previous hitsound. -- Dave
+	usesound = 'sound/weapons/blade1.ogg'
+	toolspeed = 1
 
 /obj/item/weapon/melee/energy/suicide_act(mob/user)
 	user.visible_message(pick("<span class='suicide'>[user] is slitting \his stomach open with the [src.name]! It looks like \he's trying to commit seppuku.</span>", \
@@ -19,7 +21,7 @@
 		to_chat(user, "<span class='warning'>You accidentally cut yourself with [src], like a doofus!</span>")
 		user.take_organ_damage(5,5)
 	active = !active
-	if (active)
+	if(active)
 		force = force_on
 		throwforce = throwforce_on
 		hitsound = 'sound/weapons/blade1.ogg'
@@ -62,7 +64,8 @@
 	w_class = 3
 	w_class_on = 5
 	hitsound = "swing_hit"
-	flags = CONDUCT | NOSHIELD
+	flags = CONDUCT
+	armour_penetration = 100
 	origin_tech = "combat=3"
 	attack_verb = list("attacked", "chopped", "cleaved", "torn", "cut")
 	attack_verb_on = list()
@@ -82,8 +85,9 @@
 	throw_speed = 3
 	throw_range = 5
 	hitsound = "swing_hit"
-	flags = NOSHIELD
+	armour_penetration = 35
 	origin_tech = "magnets=3;syndicate=4"
+	block_chance = 50
 	sharp = 1
 	edge = 1
 	var/hacked = 0
@@ -93,9 +97,9 @@
 	if(item_color == null)
 		item_color = pick("red", "blue", "green", "purple")
 
-/obj/item/weapon/melee/energy/sword/IsShield()
+/obj/item/weapon/melee/energy/sword/hit_reaction(mob/living/carbon/human/owner, attack_text, final_block_chance)
 	if(active)
-		return 1
+		return ..()
 	return 0
 
 /obj/item/weapon/melee/energy/sword/cyborg
@@ -131,7 +135,7 @@
 	..()
 	item_color = null
 
-/obj/item/weapon/melee/energy/sword/cyborg/saw/IsShield()
+/obj/item/weapon/melee/energy/sword/cyborg/saw/hit_reaction()
 	return 0
 
 /obj/item/weapon/melee/energy/sword/saber
@@ -204,7 +208,7 @@
 	throw_speed = 3
 	throw_range = 1
 	w_class = 4//So you can't hide it in your pocket or some such.
-	flags = NOSHIELD
+	armour_penetration = 50
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 	var/datum/effect/system/spark_spread/spark_system
 
@@ -215,6 +219,7 @@
 	spark_system.attach(src)
 
 /obj/item/weapon/melee/energy/blade/dropped()
+	..()
 	qdel(src)
 
 /obj/item/weapon/melee/energy/blade/attack_self(mob/user)

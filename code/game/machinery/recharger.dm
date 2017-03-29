@@ -34,7 +34,7 @@
 			to_chat(user, "\red The [name] blinks red as you try to insert the item!")
 			return
 
-		if (istype(G, /obj/item/weapon/gun/energy))
+		if(istype(G, /obj/item/weapon/gun/energy))
 			var/obj/item/weapon/gun/energy/E = G
 			if(!E.can_charge)
 				to_chat(user, "<span class='notice'>Your gun has no external power connector.</span>")
@@ -57,7 +57,7 @@
 			return
 		anchored = !anchored
 		to_chat(user, "You [anchored ? "attached" : "detached"] the recharger.")
-		playsound(loc, 'sound/items/Ratchet.ogg', 75, 1)
+		playsound(loc, G.usesound, 75, 1)
 
 /obj/machinery/recharger/attack_hand(mob/user as mob)
 	add_fingerprint(user)

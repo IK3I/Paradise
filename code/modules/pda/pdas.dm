@@ -39,7 +39,7 @@
 	ttone = "honk"
 
 /obj/item/device/pda/clown/Crossed(AM as mob|obj) //Clown PDA is slippery.
-	if (istype(AM, /mob/living/carbon))
+	if(istype(AM, /mob/living/carbon))
 		var/mob/living/carbon/M =	AM
 		M.slip("pda", 8, 5, 0, 1)
 
@@ -98,6 +98,18 @@
 /obj/item/device/pda/heads/blueshield
 	default_cartridge = /obj/item/weapon/cartridge/hos
 	icon_state = "pda-h"
+
+/obj/item/device/pda/heads/ert
+
+/obj/item/device/pda/heads/ert/engineering
+	icon_state = "pda-engineer"
+
+/obj/item/device/pda/heads/ert/security
+	icon_state = "pda-security"
+
+/obj/item/device/pda/heads/ert/medical
+	icon_state = "pda-medical"
+
 
 /obj/item/device/pda/cargo
 	default_cartridge = /obj/item/weapon/cartridge/quartermaster

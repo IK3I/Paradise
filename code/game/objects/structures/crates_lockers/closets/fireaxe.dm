@@ -21,11 +21,11 @@
 		if(fireaxe)
 			hasaxe = 1
 
-		if (isrobot(user) || src.locked)
+		if(isrobot(user) || src.locked)
 			if(istype(O, /obj/item/device/multitool))
 				to_chat(user, "\red Resetting circuitry...")
 				playsound(user, 'sound/machines/lockreset.ogg', 50, 1)
-				if(do_after(user, 20, target = src))
+				if(do_after(user, 20 * O.toolspeed, target = src))
 					src.locked = 0
 					to_chat(user, "<span class = 'caution'> You disable the locking modules.</span>")
 					update_icon()
@@ -53,7 +53,7 @@
 						src.localopened = 1
 				update_icon()
 			return
-		if (istype(O, /obj/item/weapon/twohanded/fireaxe) && src.localopened)
+		if(istype(O, /obj/item/weapon/twohanded/fireaxe) && src.localopened)
 			if(!fireaxe)
 				if(O:wielded)
 					to_chat(user, "\red Unwield the axe first.")
@@ -89,7 +89,7 @@
 					src.locked = 1
 					to_chat(user, "\blue You re-enable the locking modules.")
 					playsound(user, 'sound/machines/lockenable.ogg', 50, 1)
-					if(do_after(user,20, target = src))
+					if(do_after(user, 20 * O.toolspeed, target = src))
 						src.locked = 1
 						to_chat(user, "<span class = 'caution'> You re-enable the locking modules.</span>")
 					return
@@ -155,7 +155,7 @@
 		set name = "Open/Close"
 		set category = "Object"
 
-		if (isrobot(usr) || src.locked || src.smashed)
+		if(isrobot(usr) || src.locked || src.smashed)
 			if(src.locked)
 				to_chat(usr, "\red The cabinet won't budge!")
 			else if(src.smashed)
@@ -169,10 +169,10 @@
 		set name = "Remove Fire Axe"
 		set category = "Object"
 
-		if (isrobot(usr))
+		if(isrobot(usr))
 			return
 
-		if (localopened)
+		if(localopened)
 			if(fireaxe)
 				usr.put_in_hands(fireaxe)
 				fireaxe = null

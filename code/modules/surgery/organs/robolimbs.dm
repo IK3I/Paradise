@@ -1,5 +1,4 @@
 var/global/list/all_robolimbs = list()
-var/global/list/robolimb_data = list()
 var/global/list/chargen_robolimbs = list()
 var/global/datum/robolimb/basic_robolimb
 
@@ -20,7 +19,7 @@ var/global/datum/robolimb/basic_robolimb
 	var/unavailable_at_chargen                           // If set, not available at chargen.
 	var/is_monitor										 // If set, limb is a monitor and should be getting monitor styles.
 	var/has_subtypes = 2								 // If null, object is a model. If 1, object is a brand (that serves as the default model) with child models. If 2, object is a brand that has no child models and thus also serves as the model..
-	var/parts = list("chest", "groin", "head", "r_arm", "r_hand", "r_leg", "r_foot", "l_leg", "l_foot", "l_arm", "l_hand")	//Defines what parts said brand can replace on a body.
+	var/parts = list("chest", "groin", "head", "r_arm", "r_hand", "r_leg", "r_foot", "l_leg", "l_foot", "l_arm", "l_hand")	// Defines what parts said brand can replace on a body.
 
 /datum/robolimb/bishop
 	company = "Bishop Cybernetics"
@@ -121,3 +120,22 @@ var/global/datum/robolimb/basic_robolimb
 	desc = "This limb has a rubbery fleshtone covering with visible seams."
 	icon = 'icons/mob/human_races/cyberlimbs/zenghu/zenghu_main.dmi'
 	has_subtypes = 2
+
+/datum/robolimb/shellguard
+	company = "Shellguard Munitions Standard Series"
+	desc = "This limb features exposed robust steel and paint to match Shellguards motifs"
+	icon = 'icons/mob/human_races/cyberlimbs/shellguard/shellguard_main.dmi'
+	has_subtypes = 1
+
+/datum/robolimb/shellguard/alt1
+	company = "Shellguard Munitions Elite Series"
+	icon = 'icons/mob/human_races/cyberlimbs/shellguard/shellguard_alt1.dmi'
+	parts = list("head")
+	has_subtypes = null
+
+/datum/robolimb/shellguard/monitor
+	company = "Shellguard Munitions Monitor Series"
+	icon = 'icons/mob/human_races/cyberlimbs/shellguard/shellguard_monitor.dmi'
+	parts = list("head")
+	is_monitor = 1
+	has_subtypes = null

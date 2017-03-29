@@ -124,9 +124,6 @@
 
 	morph_time = world.time + MORPH_COOLDOWN
 
-/mob/living/simple_animal/hostile/morph/handle_state_icons()
-	return
-
 /mob/living/simple_animal/hostile/morph/death(gibbed)
 	if(morphed)
 		visible_message("<span class='warning'>[src] twists and dissolves into a pile of green flesh!</span>", \
@@ -162,15 +159,13 @@
 		if(L.stat == DEAD)
 			if(do_after(src, 30, target = L))
 				if(eat(L))
-					heal_overall_damage(50,50)
+					adjustHealth(-50)
 			return
 	else if(istype(target,/obj/item)) // Eat items just to be annoying
 		var/obj/item/I = target
 		if(!I.anchored)
-			if(do_after(src,20, target = I))
+			if(do_after(src, 20, target = I))
 				eat(I)
 			return
 	target.attack_animal(src)
 
-/mob/living/simple_animal/hostile/morph/update_action_buttons() //So all eaten objects are not counted every life
-	return

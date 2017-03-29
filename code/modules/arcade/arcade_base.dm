@@ -16,9 +16,10 @@
 
 /obj/machinery/arcade/New()
 	..()
-	var/choice = pick(subtypesof(/obj/machinery/arcade))
-	new choice(loc)
-	qdel(src)
+	if(type == /obj/machinery/arcade)		//if you spawn the base-type, it will replace itself with a random subtype for randomness
+		var/choice = pick(subtypesof(/obj/machinery/arcade))
+		new choice(loc)
+		qdel(src)
 
 /obj/machinery/arcade/examine(mob/user)
 	..(user)
@@ -60,7 +61,7 @@
 
 /obj/machinery/arcade/attackby(var/obj/item/O as obj, var/mob/user as mob, params)
 	if(istype(O, /obj/item/weapon/screwdriver) && anchored)
-		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
+		playsound(src.loc, O.usesound, 50, 1)
 		panel_open = !panel_open
 		to_chat(user, "You [panel_open ? "open" : "close"] the maintenance panel.")
 		update_icon()
@@ -71,33 +72,29 @@
 			if(pay_with_card(C))
 				tokens += 1
 			return
-		else if(istype(O, /obj/item/weapon/spacecash))
-			var/obj/item/weapon/spacecash/C = O
+		else if(istype(O, /obj/item/stack/spacecash))
+			var/obj/item/stack/spacecash/C = O
 			if(pay_with_cash(C, user))
 				tokens += 1
 			return
-	if(panel_open&& component_parts && istype(O, /obj/item/weapon/crowbar))
+	if(panel_open && component_parts && istype(O, /obj/item/weapon/crowbar))
 		default_deconstruction_crowbar(O)
 
 /obj/machinery/arcade/update_icon()
 	return
 
-/obj/machinery/arcade/proc/pay_with_cash(var/obj/item/weapon/spacecash/cashmoney, var/mob/user)
-	if(cashmoney.get_total() < token_price)
-		to_chat(user, "\icon[cashmoney] <span class='warning'>That is not enough money.</span>")
+/obj/machinery/arcade/proc/pay_with_cash(obj/item/stack/spacecash/cashmoney, mob/user)
+	if(cashmoney.amount < token_price)
+		to_chat(user, "[bicon(cashmoney)] <span class='warning'>That is not enough money.</span>")
 		return 0
 	visible_message("<span class='info'>[usr] inserts a credit chip into [src].</span>")
-	var/left = cashmoney.get_total() - token_price
-	user.unEquip(cashmoney)
-	qdel(cashmoney)
-	if(left)
-		dispense_cash(left, src.loc, user)
+	cashmoney.use(token_price)
 	return 1
 
 /obj/machinery/arcade/proc/pay_with_card(var/obj/item/weapon/card/id/I, var/mob/user)
 	visible_message("<span class='info'>[usr] swipes a card through [src].</span>")
 	var/datum/money_account/customer_account = attempt_account_access_nosec(I.associated_account_number)
-	if (!customer_account)
+	if(!customer_account)
 		to_chat(user, "Error: Unable to access account. Please contact technical support if problem persists.")
 		return 0
 

@@ -22,6 +22,10 @@
 	origin_tech = "materials=1"
 	var/created_window = /obj/structure/window/basic
 	var/full_window = /obj/structure/window/full/basic
+	merge_type = /obj/item/stack/sheet/glass
+
+/obj/item/stack/sheet/glass/fifty
+	amount = 50
 
 /obj/item/stack/sheet/glass/cyborg
 	materials = list()
@@ -50,7 +54,7 @@
 		src = null
 		var/replace = (user.get_inactive_hand()==G)
 		G.use(1)
-		if (!G && !RG && replace)
+		if(!G && !RG && replace)
 			user.put_in_hands(RG)
 	else
 		return ..()
@@ -70,7 +74,7 @@
 
 			var/list/directions = new/list(cardinal)
 			var/i = 0
-			for (var/obj/structure/window/win in user.loc)
+			for(var/obj/structure/window/win in user.loc)
 				i++
 				if(i >= 4)
 					to_chat(user, "<span class='danger'>There are too many windows in this location.</span>")
@@ -152,6 +156,7 @@
 	origin_tech = "materials=2"
 	var/created_window = /obj/structure/window/reinforced
 	var/full_window = /obj/structure/window/full/reinforced
+	merge_type = /obj/item/stack/sheet/rglass
 
 /obj/item/stack/sheet/rglass/cyborg
 	materials = list()
@@ -173,7 +178,7 @@
 			if(src.loc != user)	return 1
 			var/list/directions = new/list(cardinal)
 			var/i = 0
-			for (var/obj/structure/window/win in user.loc)
+			for(var/obj/structure/window/win in user.loc)
 				i++
 				if(i >= 4)
 					to_chat(user, "<span class='danger'>There are too many windows in this location.</span>")
@@ -282,7 +287,7 @@
 		src = null
 		var/replace = (user.get_inactive_hand()==G)
 		G.use(1)
-		if (!G && !RG && replace)
+		if(!G && !RG && replace)
 			user.put_in_hands(RG)
 	else
 		return ..()
@@ -301,7 +306,7 @@
 			if(src.loc != user)  return 1
 			var/list/directions = new/list(cardinal)
 			var/i = 0
-			for (var/obj/structure/window/win in user.loc)
+			for(var/obj/structure/window/win in user.loc)
 				i++
 				if(i >= 4)
 					to_chat(user, "<span class='danger'>There are too many windows in this location.</span>")
@@ -373,7 +378,7 @@
 			if(src.loc != user)  return 1
 			var/list/directions = new/list(cardinal)
 			var/i = 0
-			for (var/obj/structure/window/win in user.loc)
+			for(var/obj/structure/window/win in user.loc)
 				i++
 				if(i >= 4)
 					to_chat(user, "<span class='danger'>There are too many windows in this location.</span>")

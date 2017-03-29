@@ -11,6 +11,7 @@
 	var/payload_name = null // used for spawned grenades
 	w_class = 2
 	force = 2
+	var/prime_sound = 'sound/items/Screwdriver2.ogg'
 	var/stage = EMPTY
 	var/list/beakers = list()
 	var/list/allowed_containers = list(/obj/item/weapon/reagent_containers/glass/beaker, /obj/item/weapon/reagent_containers/glass/bottle)
@@ -102,6 +103,11 @@
 			spawn(det_time)
 				prime()
 
+/obj/item/weapon/grenade/hit_reaction(mob/living/carbon/human/owner, attack_text, final_block_chance, damage, attack_type)
+	if(damage && attack_type == PROJECTILE_ATTACK && prob(15))
+		owner.visible_message("<span class='danger'>[attack_text] hits [owner]'s [src], setting it off! What a shot!</span>")
+		prime()
+		return 1 //It hit the grenade, not them
 
 /obj/item/weapon/grenade/chem_grenade/attackby(obj/item/I, mob/user, params)
 	if(istype(I,/obj/item/weapon/hand_labeler))
@@ -119,7 +125,7 @@
 		if(stage == WIRED)
 			if(beakers.len)
 				to_chat(user, "<span class='notice'>You lock the assembly.</span>")
-				playsound(loc, 'sound/items/Screwdriver.ogg', 25, -3)
+				playsound(loc, prime_sound, 25, -3)
 				stage = READY
 				update_icon()
 				var/contained = ""
@@ -260,7 +266,7 @@
 			has_reagents = 1
 
 	if(!has_reagents)
-		playsound(loc, 'sound/items/Screwdriver2.ogg', 50, 1)
+		playsound(loc, usesound, 50, 1)
 		return
 
 	if(nadeassembly)
@@ -268,7 +274,7 @@
 		var/mob/last = get_mob_by_ckey(nadeassembly.fingerprintslast)
 		var/turf/T = get_turf(src)
 		var/area/A = get_area(T)
-		message_admins("grenade primed by an assembly, attached by [key_name_admin(M)]<A HREF='?_src_=holder;adminmoreinfo=\ref[M]'>(?)</A> ([admin_jump_link(M, "holder")]) and last touched by [key_name_admin(last)]<A HREF='?_src_=holder;adminmoreinfo=\ref[last]'>(?)</A> ([admin_jump_link(last, "holder")]) ([nadeassembly.a_left.name] and [nadeassembly.a_right.name]) at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[T.x];Y=[T.y];Z=[T.z]'>[A.name] (JMP)</a>.")
+		message_admins("grenade primed by an assembly, attached by [key_name_admin(M)]<A HREF='?_src_=holder;adminmoreinfo=\ref[M]'>(?)</A> ([admin_jump_link(M)]) and last touched by [key_name_admin(last)]<A HREF='?_src_=holder;adminmoreinfo=\ref[last]'>(?)</A> ([admin_jump_link(last)]) ([nadeassembly.a_left.name] and [nadeassembly.a_right.name]) at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[T.x];Y=[T.y];Z=[T.z]'>[A.name] (JMP)</a>.")
 		log_game("grenade primed by an assembly, attached by [key_name(M)] and last touched by [key_name(last)] ([nadeassembly.a_left.name] and [nadeassembly.a_right.name]) at [A.name] ([T.x], [T.y], [T.z])")
 
 	playsound(loc, 'sound/effects/bamf.ogg', 50, 1)
@@ -342,7 +348,7 @@
 		if(E.reagents.total_volume) has_reagents = 1
 
 	if(!has_reagents)
-		playsound(loc, 'sound/items/Screwdriver2.ogg', 50, 1)
+		playsound(loc, prime_sound, 50, 1)
 		return
 
 	playsound(loc, 'sound/effects/bamf.ogg', 50, 1)
@@ -458,11 +464,11 @@
 	New()
 		..()
 		var/obj/item/weapon/reagent_containers/glass/beaker/B1 = new(src)
-		var/obj/item/weapon/reagent_containers/glass/beaker/large/B2 = new(src)
+		var/obj/item/weapon/reagent_containers/glass/beaker/B2 = new(src)
 
 		B1.reagents.add_reagent("fluorosurfactant", 40)
-		B2.reagents.add_reagent("water", 40)
-		B2.reagents.add_reagent("cleaner", 60)
+		B2.reagents.add_reagent("cleaner", 10)
+		B2.reagents.add_reagent("water", 40) //when you make pre-designed foam reactions that carry the reagents, always add water last
 
 		beakers += B1
 		beakers += B2

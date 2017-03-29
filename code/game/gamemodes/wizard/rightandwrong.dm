@@ -1,7 +1,7 @@
 
 
 /mob/proc/rightandwrong(var/summon_type) //0 = Summon Guns, 1 = Summon Magic
-	var/list/gunslist = list("taser","egun","laser","revolver","detective","c20r","nuclear","deagle","gyrojet","pulse","suppressed","cannon","doublebarrel","shotgun","combatshotgun","bulldog","mateba","sabr","crossbow","saw","car","boltaction","arg","uzi","turret","pulsecarbine","decloner","mindflayer","hyperkinetic","advplasmacutter","wormhole","wt550","grenadelauncher","medibeam")
+	var/list/gunslist = list("taser","egun","laser","revolver","detective","c20r","nuclear","deagle","gyrojet","pulse","suppressed","cannon","doublebarrel","shotgun","combatshotgun","bulldog","mateba","sabr","crossbow","saw","car","boltaction","arg","uzi","turret","pulsecarbine","decloner","mindflayer","kinetic","advplasmacutter","wormhole","wt550","grenadelauncher","medibeam")
 	var/list/magiclist = list("fireball","smoke","blind","mindswap","forcewall","knock","horsemask","charge", "summonitem", "wandnothing", "wanddeath", "wandresurrection", "wandpolymorph", "wandteleport", "wanddoor", "wandfireball", "staffhealing", "armor", "scrying", "staffdoor", "special","voodoo","special")
 	var/list/magicspeciallist = list("staffchange","staffanimation", "wandbelt", "contract", "staffchaos","necromantic")
 
@@ -12,15 +12,15 @@
 		if(H.stat == 2 || !(H.client))
 			continue
 		if(H.mind)
-			if(H.mind.special_role == "Wizard" || H.mind.special_role == "apprentice")
+			if(H.mind.special_role == SPECIAL_ROLE_WIZARD || H.mind.special_role == SPECIAL_ROLE_WIZARD_APPRENTICE)
 				continue
 		var/randomizeguns = pick(gunslist)
 		var/randomizemagic = pick(magiclist)
 		var/randomizemagicspecial = pick(magicspeciallist)
 		if(!summon_type)
-			switch (randomizeguns)
+			switch(randomizeguns)
 				if("taser")
-					new /obj/item/weapon/gun/energy/advtaser(get_turf(H))
+					new /obj/item/weapon/gun/energy/gun/advtaser(get_turf(H))
 				if("egun")
 					new /obj/item/weapon/gun/energy/gun(get_turf(H))
 				if("laser")
@@ -34,7 +34,7 @@
 				if("gyrojet")
 					new /obj/item/weapon/gun/projectile/automatic/gyropistol(get_turf(H))
 				if("pulse")
-					new /obj/item/weapon/gun/energy/pulse_rifle(get_turf(H))
+					new /obj/item/weapon/gun/energy/pulse(get_turf(H))
 				if("suppressed")
 					new /obj/item/weapon/gun/projectile/automatic/pistol(get_turf(H))
 					new /obj/item/weapon/suppressor(get_turf(H))
@@ -71,13 +71,13 @@
 				if("turret")
 					new /obj/item/weapon/gun/energy/gun/turret(get_turf(H))
 				if("pulsecarbine")
-					new /obj/item/weapon/gun/energy/pulse_rifle/carbine(get_turf(H))
+					new /obj/item/weapon/gun/energy/pulse/carbine(get_turf(H))
 				if("decloner")
 					new /obj/item/weapon/gun/energy/decloner(get_turf(H))
 				if("mindflayer")
 					new /obj/item/weapon/gun/energy/mindflayer(get_turf(H))
-				if("hyperkinetic")
-					new /obj/item/weapon/gun/energy/kinetic_accelerator/hyper(get_turf(H))
+				if("kinetic")
+					new /obj/item/weapon/gun/energy/kinetic_accelerator(get_turf(H))
 				if("advplasmacutter")
 					new /obj/item/weapon/gun/energy/plasmacutter/adv(get_turf(H))
 				if("wormhole")
@@ -88,8 +88,10 @@
 					new /obj/item/weapon/gun/projectile/revolver/grenadelauncher(get_turf(H))
 				if("medibeam")
 					new /obj/item/weapon/gun/medbeam(get_turf(H))
+					
+			playsound(get_turf(H), 'sound/magic/Summon_guns.ogg', 50, 1)
 		else
-			switch (randomizemagic)
+			switch(randomizemagic)
 				if("fireball")
 					new /obj/item/weapon/spellbook/oneuse/fireball(get_turf(H))
 				if("smoke")
@@ -127,11 +129,11 @@
 				if("staffdoor")
 					new /obj/item/weapon/gun/magic/staff/door(get_turf(H))
 				if("armor")
-					new /obj/item/clothing/suit/space/rig/wizard(get_turf(H))
-					new /obj/item/clothing/head/helmet/space/rig/wizard(get_turf(H))
+					new /obj/item/clothing/suit/space/hardsuit/wizard(get_turf(H))
+					new /obj/item/clothing/head/helmet/space/hardsuit/wizard(get_turf(H))
 				if("scrying")
 					new /obj/item/weapon/scrying(get_turf(H))
-					if (!(XRAY in H.mutations))
+					if(!(XRAY in H.mutations))
 						H.mutations.Add(XRAY)
 						H.sight |= (SEE_MOBS|SEE_OBJS|SEE_TURFS)
 						H.see_in_dark = 8
@@ -141,7 +143,7 @@
 					new /obj/item/voodoo(get_turf(H))
 				if("special")
 					magiclist -= "special" //only one super OP item per summoning max
-					switch (randomizemagicspecial)
+					switch(randomizemagicspecial)
 						if("staffchange")
 							new /obj/item/weapon/gun/magic/staff/change(get_turf(H))
 						if("staffanimation")
@@ -155,3 +157,5 @@
 						if("necromantic")
 							new /obj/item/device/necromantic_stone(get_turf(H))
 					to_chat(H, "<span class='notice'>You suddenly feel lucky.</span>")
+					
+			playsound(get_turf(H), 'sound/magic/Summon_Magic.ogg', 50, 1)

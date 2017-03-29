@@ -39,6 +39,11 @@
 
 		src.colorlist += D
 
+/obj/machinery/pdapainter/Destroy()
+	if(storedpda)
+		qdel(storedpda)
+		storedpda = null
+	return ..()
 
 /obj/machinery/pdapainter/attackby(var/obj/item/O as obj, var/mob/user as mob, params)
 	if(istype(O, /obj/item/device/pda))
@@ -56,7 +61,8 @@
 
 
 /obj/machinery/pdapainter/attack_hand(mob/user as mob)
-	..()
+	if(..())
+		return 1
 
 	src.add_fingerprint(user)
 
@@ -79,6 +85,9 @@
 	set name = "Eject PDA"
 	set category = "Object"
 	set src in oview(1)
+	
+	if(usr.incapacitated())
+		return
 
 	if(storedpda)
 		storedpda.loc = get_turf(src.loc)

@@ -31,11 +31,13 @@
 	var/resintype = null
 	smooth = SMOOTH_TRUE
 
-
-/obj/structure/alien/resin/New(location)
-	..()
+/obj/structure/alien/resin/initialize()
 	air_update_turf(1)
-	return
+	..()
+
+/obj/structure/alien/resin/Destroy()
+	air_update_turf(1)
+	return ..()
 
 /obj/structure/alien/resin/Move()
 	var/turf/T = loc
@@ -77,7 +79,8 @@
 
 
 /obj/structure/alien/resin/bullet_act(obj/item/projectile/Proj)
-	health -= Proj.damage
+	if(Proj.damage_type == BRUTE || Proj.damage_type == BURN)
+		health -= Proj.damage
 	..()
 	healthcheck()
 
@@ -179,7 +182,7 @@
 
 /obj/structure/alien/weeds/Destroy()
 	var/turf/T = loc
-	for (var/obj/structure/alien/weeds/W in range(1,T))
+	for(var/obj/structure/alien/weeds/W in range(1,T))
 		W.updateWeedOverlays()
 	linked_node = null
 	return ..()
@@ -219,7 +222,7 @@
 		var/obj/item/weapon/weldingtool/WT = I
 		if(WT.remove_fuel(0, user))
 			damage = 15
-			playsound(loc, 'sound/items/Welder.ogg', 100, 1)
+			playsound(loc, WT.usesound, 100, 1)
 
 	health -= damage
 	healthcheck()
@@ -267,7 +270,7 @@
 
 
 /obj/structure/alien/weeds/proc/fullUpdateWeedOverlays()
-	for (var/obj/structure/alien/weeds/W in range(1,src))
+	for(var/obj/structure/alien/weeds/W in range(1,src))
 		W.updateWeedOverlays()
 
 //Weed nodes
@@ -360,7 +363,8 @@
 							break
 
 /obj/structure/alien/egg/bullet_act(obj/item/projectile/Proj)
-	health -= Proj.damage
+	if((Proj.damage_type == BRUTE || Proj.damage_type == BURN))
+		health -= Proj.damage
 	..()
 	healthcheck()
 
@@ -377,7 +381,7 @@
 
 		if(WT.remove_fuel(0, user))
 			damage = 15
-			playsound(loc, 'sound/items/Welder.ogg', 100, 1)
+			playsound(loc, WT.usesound, 100, 1)
 
 	health -= damage
 	user.changeNext_move(CLICK_CD_MELEE)

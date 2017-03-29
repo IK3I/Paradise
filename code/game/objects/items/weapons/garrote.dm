@@ -70,7 +70,7 @@
 		to_chat(user, "<span class='warning'>You cannot use [src] on [M] from that angle!</span>")
 		return
 
-	if(improvised && ((M.head && (M.head.flags & HEADCOVERSMOUTH)) || (M.wear_mask && (M.wear_mask.flags & MASKCOVERSMOUTH)))) // Improvised garrotes are blocked by mouth-covering items.
+	if(improvised && ((M.head && (M.head.flags_cover & HEADCOVERSMOUTH)) || (M.wear_mask && (M.wear_mask.flags_cover & MASKCOVERSMOUTH)))) // Improvised garrotes are blocked by mouth-covering items.
 		to_chat(user, "<span class = 'warning'>[M]'s neck is blocked by something they're wearing!</span>")
 
 	if(strangling)
@@ -91,7 +91,7 @@
 			G.state = GRAB_NECK
 			G.hud.icon_state = "kill"
 			G.hud.name = "kill"
-			M.silent += 1
+			M.AdjustSilence(1)
 
 	garrote_time = world.time + 10
 	processing_objects.Add(src)
@@ -107,6 +107,12 @@
 	return
 
 /obj/item/weapon/twohanded/garrote/process()
+	if(!strangling)
+		// Our mark got gibbed or similar
+		update_icon()
+		processing_objects.Remove(src)
+		return
+
 
 	if(!istype(loc, /mob/living/carbon/human))
 		strangling = null
@@ -152,7 +158,7 @@
 		return
 
 
-	strangling.silent = max(strangling.silent,  3) // Non-improvised effects
+	strangling.Silence(3) // Non-improvised effects
 	strangling.apply_damage(4, OXY, "head")
 
 

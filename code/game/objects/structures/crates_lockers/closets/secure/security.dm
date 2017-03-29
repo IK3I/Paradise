@@ -14,17 +14,21 @@
 			new /obj/item/weapon/storage/backpack/captain(src)
 		else
 			new /obj/item/weapon/storage/backpack/satchel_cap(src)
+		new /obj/item/weapon/book/manual/faxes(src)
 		new /obj/item/weapon/storage/backpack/duffel/captain(src)
 		new /obj/item/clothing/suit/captunic(src)
 		new /obj/item/clothing/suit/captunic/capjacket(src)
+		new /obj/item/clothing/under/captainparade(src)
 		new /obj/item/clothing/head/caphat/parade(src)
-		new /obj/item/clothing/under/dress/dress_cap(src)
 		new /obj/item/clothing/under/rank/captain(src)
-		new /obj/item/clothing/suit/armor/vest/capcarapace(src)
+		new /obj/item/clothing/under/dress/dress_cap(src)
+		new /obj/item/clothing/suit/armor/vest/capcarapace/alt(src)
 		new /obj/item/weapon/cartridge/captain(src)
 		new /obj/item/clothing/shoes/brown(src)
+		new /obj/item/clothing/shoes/laceup(src)
 		new /obj/item/device/radio/headset/heads/captain/alt(src)
 		new /obj/item/clothing/gloves/color/captain(src)
+		new /obj/item/weapon/storage/belt/rapier(src)
 		new /obj/item/weapon/gun/energy/gun(src)
 		new /obj/item/weapon/door_remote/captain(src)
 
@@ -51,7 +55,6 @@
 		new /obj/item/clothing/suit/armor/vest(src)
 		new /obj/item/weapon/gun/energy/gun(src)
 		new /obj/item/device/flash(src)
-		new /obj/item/weapon/mining_voucher(src)
 		new /obj/item/clothing/accessory/petcollar(src)
 		new /obj/item/weapon/door_remote/civillian(src)
 
@@ -103,6 +106,7 @@
 		new /obj/item/clothing/under/rank/head_of_security(src)
 		new /obj/item/clothing/under/rank/head_of_security/formal(src)
 		new /obj/item/clothing/under/rank/head_of_security/corp(src)
+		new /obj/item/clothing/under/rank/head_of_security/skirt(src)
 		new /obj/item/clothing/suit/armor/hos(src)
 		new /obj/item/clothing/suit/armor/hos/alt(src)
 		new /obj/item/clothing/head/HoS(src)
@@ -115,7 +119,7 @@
 		new /obj/item/weapon/melee/baton/loaded(src)
 		new /obj/item/weapon/storage/belt/security/sec(src)
 		new /obj/item/taperoll/police(src)
-		new /obj/item/weapon/gun/energy/hos(src)
+		new /obj/item/weapon/gun/energy/gun/hos(src)
 		new /obj/item/weapon/door_remote/head_of_security(src)
 
 
@@ -145,6 +149,7 @@
 		new /obj/item/clothing/under/rank/warden(src)
 		new /obj/item/clothing/under/rank/warden/formal(src)
 		new /obj/item/clothing/under/rank/warden/corp(src)
+		new /obj/item/clothing/under/rank/warden/skirt(src)
 		new /obj/item/clothing/glasses/hud/security/sunglasses(src)
 		new /obj/item/clothing/mask/gas/sechailer/warden(src)
 		new /obj/item/taperoll/police(src)
@@ -152,9 +157,10 @@
 		new /obj/item/weapon/storage/box/flashbangs(src)
 		new /obj/item/weapon/reagent_containers/spray/pepper(src)
 		new /obj/item/weapon/melee/baton/loaded(src)
-		new /obj/item/weapon/gun/energy/advtaser(src)
+		new /obj/item/weapon/gun/energy/gun/advtaser(src)
 		new /obj/item/weapon/storage/belt/security/sec(src)
 		new /obj/item/weapon/storage/box/holobadge(src)
+		new /obj/item/clothing/gloves/color/black/krav_maga/sec(src)
 
 
 
@@ -258,6 +264,7 @@
 
 	New()
 		..()
+		new /obj/item/weapon/book/manual/faxes(src)
 		new /obj/item/weapon/storage/briefcase(src)
 		new /obj/item/device/paicard(src)
 		new /obj/item/device/flash(src)
@@ -269,6 +276,8 @@
 		new /obj/item/clothing/under/lawyer/female(src)
 		new /obj/item/clothing/head/ntrep(src)
 		new /obj/item/clothing/shoes/sandal/fancy(src)
+		new /obj/item/weapon/storage/box/tapes(src)
+		new /obj/item/device/taperecorder(src)
 
 
 /obj/structure/closet/secure_closet/security/cargo
@@ -309,13 +318,15 @@
 	icon_opened = "cabinetdetective_open"
 	icon_broken = "cabinetdetective_broken"
 	icon_off = "cabinetdetective_broken"
+	burn_state = FLAMMABLE
+	burntime = 20
 
 	New()
 		..()
 		new /obj/item/clothing/under/det(src)
 		new /obj/item/clothing/suit/storage/det_suit(src)
-		new /obj/item/clothing/suit/storage/forensics/blue(src)
-		new /obj/item/clothing/suit/storage/forensics/red(src)
+		new /obj/item/clothing/suit/storage/det_suit/forensics/blue(src)
+		new /obj/item/clothing/suit/storage/det_suit/forensics/red(src)
 		new /obj/item/clothing/gloves/color/black(src)
 		new /obj/item/clothing/head/det_hat(src)
 		new /obj/item/clothing/shoes/brown(src)
@@ -331,6 +342,7 @@
 		new /obj/item/clothing/accessory/holster/armpit(src)
 		new /obj/item/clothing/glasses/sunglasses/yeah(src)
 		new /obj/item/device/flashlight/seclite(src)
+		new /obj/item/clothing/accessory/black(src)
 
 /obj/structure/closet/secure_closet/detective/update_icon()
 	if(broken)
@@ -346,7 +358,7 @@
 
 /obj/structure/closet/secure_closet/injection
 	name = "lethal injections locker"
-	req_access = list(access_captain)
+	req_access = list(access_security)
 
 
 	New()

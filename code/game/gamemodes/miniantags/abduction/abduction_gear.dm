@@ -13,14 +13,15 @@
 	blood_overlay_type = "armor"
 	origin_tech = "materials=5;biotech=4;powerstorage=5;abductor=3"
 	armor = list(melee = 15, bullet = 15, laser = 15, energy = 15, bomb = 15, bio = 15, rad = 15)
-	action_button_name = "Activate"
-	action_button_is_hands_free = 1
+	actions_types = list(/datum/action/item_action/hands_free/activate)
 	var/mode = VEST_STEALTH
 	var/stealth_active = 0
 	var/combat_cooldown = 10
 	var/datum/icon_snapshot/disguise
 	var/stealth_armor = list(melee = 15, bullet = 15, laser = 15, energy = 15, bomb = 15, bio = 15, rad = 15)
 	var/combat_armor = list(melee = 50, bullet = 50, laser = 50, energy = 50, bomb = 50, bio = 50, rad = 50)
+	species_fit = null
+	sprite_sheets = null
 
 /obj/item/clothing/suit/armor/abductor/vest/proc/flip_mode()
 	switch(mode)
@@ -29,18 +30,21 @@
 			DeactivateStealth()
 			armor = combat_armor
 			icon_state = "vest_combat"
-			if(istype(loc, /mob/living/carbon/human))
-				var/mob/living/carbon/human/H = loc
-				H.update_inv_wear_suit()
-			return
 		if(VEST_COMBAT)// TO STEALTH
 			mode = VEST_STEALTH
 			armor = stealth_armor
 			icon_state = "vest_stealth"
-			if(istype(loc, /mob/living/carbon/human))
-				var/mob/living/carbon/human/H = loc
-				H.update_inv_wear_suit()
-			return
+
+	if(ishuman(loc))
+		var/mob/living/carbon/human/H = loc
+		H.update_inv_wear_suit()
+	for(var/X in actions)
+		var/datum/action/A = X
+		A.UpdateButtonIcon()
+
+/obj/item/clothing/suit/armor/abductor/vest/item_action_slot_check(slot, mob/user)
+	if(slot == slot_wear_suit) //we only give the mob the ability to activate the vest if he's actually wearing it.
+		return 1
 
 /obj/item/clothing/suit/armor/abductor/vest/proc/SetDisguise(datum/icon_snapshot/entry)
 	disguise = entry
@@ -75,7 +79,7 @@
 		M.regenerate_icons()
 	return
 
-/obj/item/clothing/suit/armor/abductor/vest/IsShield()
+/obj/item/clothing/suit/armor/abductor/vest/hit_reaction()
 	DeactivateStealth()
 	return 0
 
@@ -308,14 +312,7 @@
 	icon_state = "alienpistol"
 	item_state = "alienpistol"
 	origin_tech = "combat=5;materials=4;powerstorage=3;abductor=3"
-
-/obj/item/weapon/gun/energy/decloner/alien/special_check(user)
-	if(istype(user, /mob/living/carbon/human))
-		var/mob/living/carbon/human/H = user
-		if(H.get_species() != "Abductor")
-			to_chat(user, "<span class='userdanger'>UNAUTHORIZED -- UNAUTHORIZED</span>")
-			return 0
-	return 1
+	restricted_species = list("Abductor")
 
 /obj/item/weapon/paper/abductor
 	name = "Dissection Guide"
@@ -360,7 +357,7 @@ Congratulations! You are now trained for xenobiology research!"}
 	origin_tech = "materials=6;combat=5;biotech=7;abductor=4"
 	force = 7
 	w_class = 3
-	action_button_name = "Toggle Mode"
+	actions_types = list(/datum/action/item_action/toggle_mode)
 
 /obj/item/weapon/abductor_baton/proc/toggle(mob/living/user=usr)
 	mode = (mode+1)%BATON_MODES
@@ -377,6 +374,9 @@ Congratulations! You are now trained for xenobiology research!"}
 
 	to_chat(usr, "<span class='notice'>You switch the baton to [txt] mode.</span>")
 	update_icon()
+	for(var/X in actions)
+		var/datum/action/A = X
+		A.UpdateButtonIcon()
 
 /obj/item/weapon/abductor_baton/update_icon()
 	switch(mode)
@@ -416,7 +416,13 @@ Congratulations! You are now trained for xenobiology research!"}
 
 	user.do_attack_animation(L)
 
-	switch (mode)
+	if(ishuman(L))
+		var/mob/living/carbon/human/H = L
+		if(H.check_shields(0, "[user]'s [name]", src, MELEE_ATTACK))
+			playsound(L, 'sound/weapons/Genhit.ogg', 50, 1)
+			return 0
+
+	switch(mode)
 		if(BATON_STUN)
 			StunAttack(L,user)
 		if(BATON_SLEEP)
@@ -449,7 +455,7 @@ Congratulations! You are now trained for xenobiology research!"}
 		var/mob/living/carbon/human/H = L
 		H.forcesay(hit_appends)
 
-	add_logs(L, user, "stunned")
+	add_logs(user, L, "stunned")
 	return
 
 /obj/item/weapon/abductor_baton/proc/SleepAttack(mob/living/L,mob/living/user)
@@ -458,9 +464,9 @@ Congratulations! You are now trained for xenobiology research!"}
 							"<span class='userdanger'>You suddenly feel very drowsy!</span>")
 		playsound(loc, 'sound/weapons/Egloves.ogg', 50, 1, -1)
 		L.Sleeping(60)
-		add_logs(L, user, "put to sleep")
+		add_logs(user, L, "put to sleep")
 	else
-		L.drowsyness += 1
+		L.AdjustDrowsy(1)
 		to_chat(user, "<span class='warning'>Sleep inducement works fully only on stunned specimens! </span>")
 		L.visible_message("<span class='danger'>[user] tried to induce sleep in [L] with [src]!</span>", \
 							"<span class='userdanger'>You suddenly feel drowsy!</span>")
@@ -479,7 +485,7 @@ Congratulations! You are now trained for xenobiology research!"}
 				C.handcuffed = new /obj/item/weapon/restraints/handcuffs/energy/used(C)
 				C.update_handcuffed()
 				to_chat(user, "<span class='notice'>You handcuff [C].</span>")
-				add_logs(C, user, "handcuffed")
+				add_logs(user, C, "handcuffed")
 		else
 			to_chat(user, "<span class='warning'>You fail to handcuff [C].</span>")
 	return
@@ -541,31 +547,37 @@ Congratulations! You are now trained for xenobiology research!"}
 	name = "alien scalpel"
 	icon = 'icons/obj/abductor.dmi'
 	origin_tech = "materials=2;biotech=2;abductor=2"
+	toolspeed = 0.25
 
 /obj/item/weapon/hemostat/alien
 	name = "alien hemostat"
 	icon = 'icons/obj/abductor.dmi'
 	origin_tech = "materials=2;biotech=2;abductor=2"
+	toolspeed = 0.25
 
 /obj/item/weapon/retractor/alien
 	name = "alien retractor"
 	icon = 'icons/obj/abductor.dmi'
 	origin_tech = "materials=2;biotech=2;abductor=2"
+	toolspeed = 0.25
 
 /obj/item/weapon/circular_saw/alien
 	name = "alien saw"
 	icon = 'icons/obj/abductor.dmi'
 	origin_tech = "materials=2;biotech=2;abductor=2"
+	toolspeed = 0.25
 
 /obj/item/weapon/surgicaldrill/alien
 	name = "alien drill"
 	icon = 'icons/obj/abductor.dmi'
 	origin_tech = "materials=2;biotech=2;abductor=2"
+	toolspeed = 0.25
 
 /obj/item/weapon/cautery/alien
 	name = "alien cautery"
 	icon = 'icons/obj/abductor.dmi'
 	origin_tech = "materials=2;biotech=2;abductor=2"
+	toolspeed = 0.25
 
 /obj/item/clothing/head/helmet/abductor
 	name = "agent headgear"
@@ -599,9 +611,9 @@ Congratulations! You are now trained for xenobiology research!"}
 /obj/structure/abductor_tableframe/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/weapon/wrench))
 		to_chat(user, "<span class='notice'>You start disassembling [src]...</span>")
-		playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
-		if(do_after(user, 30, target = src))
-			playsound(src.loc, 'sound/items/Deconstruct.ogg', 50, 1)
+		playsound(src.loc, I.usesound, 50, 1)
+		if(do_after(user, 30 * I.toolspeed, target = src))
+			playsound(src.loc, I.usesound, 50, 1)
 			new /obj/item/stack/sheet/mineral/abductor(get_turf(src))
 			qdel(src)
 			return
@@ -611,7 +623,7 @@ Congratulations! You are now trained for xenobiology research!"}
 			to_chat(user, "<span class='warning'>You need one alien alloy sheet to do this!</span>")
 			return
 		to_chat(user, "<span class='notice'>You start adding [P] to [src]...</span>")
-		if(do_after(user, 50, target = src))
+		if(do_after(user, 50 * I.toolspeed, target = src))
 			P.use(1)
 			new /obj/structure/table/abductor(src.loc)
 			qdel(src)

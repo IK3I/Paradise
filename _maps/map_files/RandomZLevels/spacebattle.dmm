@@ -10,7 +10,7 @@
 "aj" = (/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate2)
 "ak" = (/obj/machinery/door/airlock/external,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate2)
 "al" = (/mob/living/simple_animal/hostile/syndicate/ranged,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate2)
-"am" = (/obj/structure/table/reinforced,/obj/item/clothing/suit/space/rig/syndi,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate2)
+"am" = (/obj/structure/table/reinforced,/obj/item/clothing/suit/space/hardsuit/syndi,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate2)
 "an" = (/obj/structure/table/reinforced,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate2)
 "ao" = (/obj/machinery/sleeper,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate2)
 "ap" = (/obj/effect/landmark{name = "awaystart"},/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate2)
@@ -56,7 +56,7 @@
 "bd" = (/obj/effect/landmark{name = "awaystart"},/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate1)
 "be" = (/obj/machinery/porta_turret{dir = 8; emagged = 1; installation = /obj/item/weapon/gun/energy/lasercannon},/turf/simulated/floor/plating,/area/awaymission/spacebattle/syndicate2)
 "bf" = (/obj/machinery/door/unpowered/shuttle,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate3)
-"bg" = (/obj/structure/table/reinforced,/obj/item/clothing/head/helmet/space/rig/syndi,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate1)
+"bg" = (/obj/structure/table/reinforced,/obj/item/clothing/head/helmet/space/hardsuit/syndi,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate1)
 "bh" = (/obj/structure/table/reinforced,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate1)
 "bi" = (/obj/structure/table/reinforced,/obj/item/clothing/gloves/combat,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate1)
 "bj" = (/obj/machinery/sleeper,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate1)
@@ -91,11 +91,11 @@
 "bM" = (/obj/structure/window/reinforced,/obj/structure/shuttle/engine/heater{tag = "icon-heater (NORTH)"; icon_state = "heater"; dir = 1},/obj/structure/window/reinforced{dir = 8},/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
 "bN" = (/obj/structure/stool/bed/chair{dir = 4},/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/cruiser)
 "bO" = (/obj/structure/stool/bed/chair{dir = 8},/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/cruiser)
-"bP" = (/turf/simulated/shuttle/wall{tag = "icon-swall_s6"; icon_state = "swall_s6"; dir = 2},/area/awaymission/spacebattle/cruiser)
+"bP" = (/turf/space,/turf/simulated/shuttle/wall{tag = "icon-swall_f6"; icon_state = "swall_f6"; dir = 2},/area/awaymission/spacebattle/cruiser)
 "bQ" = (/turf/simulated/shuttle/wall{tag = "icon-swall12"; icon_state = "swall12"; dir = 2},/area/awaymission/spacebattle/cruiser)
 "bR" = (/turf/simulated/shuttle/wall{tag = "icon-swall14"; icon_state = "swall14"},/area/awaymission/spacebattle/cruiser)
 "bS" = (/turf/simulated/shuttle/wall{tag = "icon-swall12"; icon_state = "swall12"},/area/awaymission/spacebattle/cruiser)
-"bT" = (/turf/simulated/shuttle/wall{tag = "icon-swall_s10"; icon_state = "swall_s10"; dir = 2},/area/awaymission/spacebattle/cruiser)
+"bT" = (/turf/space,/turf/simulated/shuttle/wall{dir = 3; icon_state = "swall_f10"; layer = 2; tag = "icon-swall_f10"},/area/awaymission/spacebattle/cruiser)
 "bU" = (/obj/structure/shuttle/engine/propulsion{tag = "icon-burst_l (EAST)"; icon_state = "burst_l"; dir = 4},/turf/space,/area/awaymission/spacebattle/cruiser)
 "bV" = (/obj/structure/shuttle/engine/heater{tag = "icon-heater (WEST)"; icon_state = "heater"; dir = 8},/obj/structure/window/reinforced{dir = 4},/turf/simulated/floor/plasteel{tag = "icon-engine"; icon_state = "engine"},/area/awaymission/spacebattle/cruiser)
 "bW" = (/obj/machinery/computer/telecomms/monitor,/turf/simulated/floor/plasteel,/area/awaymission/spacebattle/cruiser)
@@ -170,7 +170,7 @@
 "dn" = (/turf/simulated/floor/plasteel{tag = "icon-damaged4"; icon_state = "damaged4"},/turf/simulated/shuttle/wall{icon_state = "diagonalWall3"},/area/awaymission/spacebattle/cruiser)
 "do" = (/obj/machinery/door/poddoor{density = 0; icon_state = "pdoor0"; id_tag = "spacebattlepod2"; name = "Front Hull Door"; opacity = 1; tag = "icon-pdoor0"},/turf/simulated/shuttle/plating,/area/awaymission/spacebattle/cruiser)
 "dp" = (/turf/simulated/floor/plasteel{tag = "icon-damaged1"; icon_state = "damaged1"},/turf/simulated/shuttle/wall{dir = 4; icon_state = "diagonalWall3"},/area/awaymission/spacebattle/cruiser)
-"dq" = (/turf/simulated/shuttle/wall{tag = "icon-swall_s5"; icon_state = "swall_s5"; dir = 2},/area/awaymission/spacebattle/cruiser)
+"dq" = (/turf/space,/turf/simulated/shuttle/wall{tag = "icon-swall_f5"; icon_state = "swall_f5"; dir = 2},/area/awaymission/spacebattle/cruiser)
 "dr" = (/obj/effect/decal/cleanable/blood,/turf/simulated/shuttle/wall{tag = "icon-swall12"; icon_state = "swall12"},/area/awaymission/spacebattle/cruiser)
 "ds" = (/turf/simulated/shuttle/wall{tag = "icon-swall15"; icon_state = "swall15"},/area/awaymission/spacebattle/cruiser)
 "dt" = (/turf/simulated/shuttle/wall{tag = "icon-swall11"; icon_state = "swall11"},/area/awaymission/spacebattle/cruiser)
@@ -190,8 +190,8 @@
 "dH" = (/obj/item/stack/rods,/turf/simulated/floor/plasteel,/area/awaymission/spacebattle/cruiser)
 "dI" = (/obj/mecha/medical/odysseus,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "dJ" = (/obj/mecha/working/ripley/firefighter,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
-"dK" = (/obj/structure/closet/crate{name = "Gold Crate"},/obj/item/mecha_parts/mecha_equipment/tool/hydraulic_clamp,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
-"dL" = (/obj/structure/closet/crate{name = "Gold Crate"},/obj/item/mecha_parts/mecha_equipment/tool/drill,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
+"dK" = (/obj/structure/closet/crate{name = "Gold Crate"},/obj/item/mecha_parts/mecha_equipment/hydraulic_clamp,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
+"dL" = (/obj/structure/closet/crate{name = "Gold Crate"},/obj/item/mecha_parts/mecha_equipment/drill,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "dM" = (/obj/structure/reagent_dispensers/watertank,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "dN" = (/obj/structure/reagent_dispensers/fueltank,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "dO" = (/obj/structure/stool/bed/chair{dir = 4},/turf/simulated/floor/plasteel{icon_state = "bar"},/area/awaymission/spacebattle/cruiser)
@@ -201,7 +201,7 @@
 "dS" = (/obj/structure/rack,/turf/simulated/floor/plasteel{icon_state = "red"; dir = 8},/area/awaymission/spacebattle/cruiser)
 "dT" = (/obj/structure/closet/secure_closet/security,/turf/simulated/floor/plasteel{icon_state = "red"; dir = 4},/area/awaymission/spacebattle/cruiser)
 "dU" = (/turf/simulated/floor/plasteel{dir = 4; icon_state = "warning"},/area/awaymission/spacebattle/cruiser)
-"dV" = (/obj/effect/landmark/corpse/engineer/rig{corpseidjob = "Gunner"; mobname = "Andrew Thorn"; name = "Andrew Thorn"},/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
+"dV" = (/obj/effect/landmark/corpse/engineer/hardsuit{corpseidjob = "Gunner"; mobname = "Andrew Thorn"; name = "Andrew Thorn"},/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
 "dW" = (/obj/structure/grille,/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced{dir = 8},/turf/simulated/floor/engine,/area/awaymission/spacebattle/cruiser)
 "dX" = (/obj/machinery/porta_turret{dir = 8; emagged = 1; installation = /obj/item/weapon/gun/energy/lasercannon},/turf/simulated/floor/engine,/area/awaymission/spacebattle/cruiser)
 "dY" = (/obj/effect/landmark/corpse/engineer{mobname = "Clay Dawson"; name = "Clay Dawson"},/turf/simulated/floor/plasteel{tag = "icon-damaged5"; icon_state = "damaged5"},/area/awaymission/spacebattle/cruiser)
@@ -209,7 +209,7 @@
 "ea" = (/obj/machinery/gateway{dir = 9},/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "eb" = (/obj/machinery/gateway{dir = 1},/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "ec" = (/obj/machinery/gateway{dir = 5},/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
-"ed" = (/obj/structure/closet/crate{name = "Gold Crate"},/obj/item/mecha_parts/mecha_equipment/tool/syringe_gun,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
+"ed" = (/obj/structure/closet/crate{name = "Gold Crate"},/obj/item/mecha_parts/mecha_equipment/syringe_gun,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "ee" = (/obj/structure/closet/crate{name = "Gold Crate"},/obj/item/mecha_parts/mecha_equipment/repair_droid,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "ef" = (/mob/living/simple_animal/hostile/syndicate/melee,/turf/simulated/floor/plasteel{icon_state = "bar"},/area/awaymission/spacebattle/cruiser)
 "eg" = (/obj/structure/closet/l3closet/security,/turf/simulated/floor/plasteel{icon_state = "red"; dir = 4},/area/awaymission/spacebattle/cruiser)
@@ -237,7 +237,7 @@
 "eC" = (/obj/structure/table/reinforced,/turf/simulated/floor/plasteel{tag = "icon-bluefull"; icon_state = "bluefull"},/area/awaymission/spacebattle/cruiser)
 "eD" = (/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced{dir = 1},/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "eE" = (/mob/living/simple_animal/hostile/syndicate/melee/space,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
-"eF" = (/obj/effect/landmark/corpse/engineer/rig{corpseidjob = "Gunner"; mobname = "Peter West"; name = "Peter West"},/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
+"eF" = (/obj/effect/landmark/corpse/engineer/hardsuit{corpseidjob = "Gunner"; mobname = "Peter West"; name = "Peter West"},/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
 "eG" = (/turf/simulated/shuttle/wall{tag = "icon-swall13"; icon_state = "swall13"; dir = 2},/area/awaymission/spacebattle/cruiser)
 "eH" = (/turf/simulated/shuttle/wall{tag = "icon-swallc4"; icon_state = "swallc4"},/area/awaymission/spacebattle/cruiser)
 "eI" = (/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate4)
@@ -256,7 +256,7 @@
 "eV" = (/obj/effect/landmark/corpse/bridgeofficer{mobname = "Kurt Kliest"; name = "Kurt Kliest"},/obj/item/weapon/gun/projectile/shotgun/automatic/combat,/obj/item/ammo_casing/shotgun,/turf/simulated/floor/plasteel,/area/awaymission/spacebattle/cruiser)
 "eW" = (/obj/item/ammo_casing/shotgun,/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plasteel,/area/awaymission/spacebattle/cruiser)
 "eX" = (/obj/machinery/computer/crew,/turf/simulated/floor/plasteel{tag = "icon-bluefull"; icon_state = "bluefull"},/area/awaymission/spacebattle/cruiser)
-"eY" = (/obj/effect/landmark/corpse/engineer/rig{corpseidjob = "Gunner"; mobname = "Eric Abnett"; name = "Eric Abnett"},/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
+"eY" = (/obj/effect/landmark/corpse/engineer/hardsuit{corpseidjob = "Gunner"; mobname = "Eric Abnett"; name = "Eric Abnett"},/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
 "eZ" = (/obj/structure/closet/crate,/obj/item/clothing/glasses/night,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "fa" = (/turf/simulated/floor/plasteel{icon_state = "red"; dir = 10},/area/awaymission/spacebattle/cruiser)
 "fb" = (/turf/simulated/floor/plasteel{icon_state = "red"},/area/awaymission/spacebattle/cruiser)
@@ -266,7 +266,7 @@
 "ff" = (/obj/machinery/door/poddoor{id_tag = "spacebattlestorage"; name = "Secure Storage"},/turf/simulated/floor/plasteel,/area/awaymission/spacebattle/cruiser)
 "fg" = (/mob/living/simple_animal/hostile/syndicate/ranged,/turf/simulated/floor/plasteel{icon_state = "blue"; dir = 8},/area/awaymission/spacebattle/cruiser)
 "fh" = (/obj/machinery/computer/security/telescreen,/turf/simulated/shuttle/wall,/area/awaymission/spacebattle/cruiser)
-"fi" = (/turf/simulated/shuttle/wall{tag = "icon-swall_s9"; icon_state = "swall_s9"; dir = 2},/area/awaymission/spacebattle/cruiser)
+"fi" = (/turf/space,/area/awaymission/spacebattle/cruiser)
 "fj" = (/obj/machinery/door/airlock/external,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate4)
 "fk" = (/obj/structure/closet/crate,/obj/item/clothing/glasses/material,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "fl" = (/obj/structure/closet/crate,/obj/item/weapon/light/tube,/obj/item/weapon/light/tube,/obj/item/weapon/light/tube,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
@@ -346,7 +346,7 @@
 "gH" = (/mob/living/simple_animal/hostile/syndicate/melee/space,/turf/simulated/floor/wood,/area/awaymission/spacebattle/cruiser)
 "gI" = (/obj/machinery/computer/security,/turf/simulated/floor/plasteel{tag = "icon-bluefull"; icon_state = "bluefull"},/area/awaymission/spacebattle/cruiser)
 "gJ" = (/obj/machinery/computer/secure_data,/turf/simulated/floor/plasteel{tag = "icon-bluefull"; icon_state = "bluefull"},/area/awaymission/spacebattle/cruiser)
-"gK" = (/obj/effect/landmark/corpse/engineer/rig{corpseidjob = "Gunner"; name = "Jeremy Tailor"},/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
+"gK" = (/obj/effect/landmark/corpse/engineer/hardsuit{corpseidjob = "Gunner"; name = "Jeremy Tailor"},/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
 "gL" = (/obj/machinery/porta_turret{dir = 8; emagged = 1; installation = /obj/item/weapon/gun/energy/lasercannon},/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/syndicate7)
 "gM" = (/turf/space,/turf/simulated/shuttle/wall{dir = 1; icon_state = "diagonalWall3"},/area/awaymission/spacebattle/syndicate7)
 "gN" = (/obj/structure/shuttle/engine/heater,/obj/structure/window/reinforced{dir = 1},/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/syndicate4)
@@ -364,7 +364,7 @@
 "gZ" = (/obj/item/weapon/pickaxe,/obj/item/weapon/gun/energy/plasmacutter,/obj/structure/closet/crate,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "ha" = (/obj/item/weapon/circular_saw,/turf/simulated/floor/plasteel{icon_state = "white"},/area/awaymission/spacebattle/cruiser)
 "hb" = (/obj/item/weapon/paper_bin,/turf/simulated/floor/wood,/area/awaymission/spacebattle/cruiser)
-"hc" = (/obj/effect/landmark/corpse/engineer/rig{corpseidjob = "Gunner"; mobname = "Dan Hedricks"; name = "Dan Hedricks"},/obj/effect/decal/cleanable/blood,/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
+"hc" = (/obj/effect/landmark/corpse/engineer/hardsuit{corpseidjob = "Gunner"; mobname = "Dan Hedricks"; name = "Dan Hedricks"},/obj/effect/decal/cleanable/blood,/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plating/airless,/area/awaymission/spacebattle/cruiser)
 "hd" = (/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced{dir = 1},/turf/simulated/floor/plating,/area/awaymission/spacebattle/syndicate7)
 "he" = (/obj/structure/table/reinforced,/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate7)
 "hf" = (/turf/simulated/shuttle/floor{icon_state = "floor4"},/area/awaymission/spacebattle/syndicate7)
@@ -373,7 +373,7 @@
 "hi" = (/obj/structure/largecrate,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "hj" = (/obj/structure/closet/crate/secure/plasma,/obj/item/weapon/tank/plasma,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
 "hk" = (/obj/structure/closet/crate/medical,/obj/item/weapon/storage/firstaid/fire,/turf/simulated/floor/plating,/area/awaymission/spacebattle/cruiser)
-"hl" = (/obj/structure/rack,/obj/item/clothing/suit/space/rig,/obj/item/clothing/head/helmet/space/rig,/turf/simulated/floor/plasteel,/area/awaymission/spacebattle/cruiser)
+"hl" = (/obj/structure/rack,/obj/item/clothing/suit/space/hardsuit,/obj/item/clothing/head/helmet/space/hardsuit,/turf/simulated/floor/plasteel,/area/awaymission/spacebattle/cruiser)
 "hm" = (/obj/machinery/portable_atmospherics/canister/oxygen,/turf/simulated/floor/plasteel{dir = 5; icon_state = "warning"},/area/awaymission/spacebattle/cruiser)
 "hn" = (/obj/structure/grille,/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 4},/turf/simulated/floor/engine,/area/awaymission/spacebattle/cruiser)
 "ho" = (/obj/structure/grille,/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced{dir = 4},/turf/simulated/floor/engine,/area/awaymission/spacebattle/cruiser)
@@ -407,7 +407,7 @@
 "hQ" = (/obj/machinery/shower{tag = "icon-shower (WEST)"; icon_state = "shower"; dir = 8},/turf/simulated/floor/plasteel{icon_state = "freezerfloor"},/area/awaymission/spacebattle/cruiser)
 "hR" = (/obj/structure/toilet,/turf/simulated/floor/plasteel{icon_state = "freezerfloor"},/area/awaymission/spacebattle/cruiser)
 "hS" = (/obj/structure/table/reinforced,/obj/item/weapon/storage/firstaid/fire,/turf/simulated/floor/plasteel{icon_state = "white"},/area/awaymission/spacebattle/cruiser)
-"hT" = (/turf/simulated/shuttle/wall{tag = "icon-swall_s9"; icon_state = "swall_s9"},/area/awaymission/spacebattle/cruiser)
+"hT" = (/turf/space,/turf/simulated/shuttle/wall{tag = "icon-swall_f9"; icon_state = "swall_f9"; dir = 2},/area/awaymission/spacebattle/cruiser)
 "hU" = (/obj/machinery/door/unpowered/shuttle,/turf/simulated/floor/plasteel{icon_state = "freezerfloor"},/area/awaymission/spacebattle/cruiser)
 "hV" = (/turf/simulated/shuttle/wall{tag = "icon-swall1"; icon_state = "swall1"},/area/awaymission/spacebattle/cruiser)
 "hW" = (/obj/item/weapon/storage/firstaid/regular,/turf/simulated/floor/plasteel{icon_state = "white"},/area/awaymission/spacebattle/cruiser)
@@ -419,11 +419,9 @@
 "ic" = (/obj/effect/landmark/corpse/engineer{mobname = "Carth Robinson"; name = "Carth Robinson"},/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plasteel{icon_state = "freezerfloor"},/area/awaymission/spacebattle/cruiser)
 "id" = (/obj/item/ammo_casing/c10mm,/obj/item/ammo_casing/c10mm,/obj/item/ammo_casing/c10mm,/obj/item/ammo_casing/c10mm,/turf/simulated/floor/plasteel{icon_state = "freezerfloor"},/area/awaymission/spacebattle/cruiser)
 "ie" = (/obj/machinery/sleeper,/turf/simulated/floor/plasteel{icon_state = "white"},/area/awaymission/spacebattle/cruiser)
-"if" = (/obj/machinery/sleep_console,/turf/simulated/floor/plasteel{icon_state = "white"},/area/awaymission/spacebattle/cruiser)
 "ig" = (/turf/space,/turf/simulated/shuttle/wall{icon_state = "diagonalWall3"},/area/awaymission/spacebattle/syndicate7)
 "ih" = (/obj/structure/sink{dir = 4; icon_state = "sink"; pixel_x = 11; pixel_y = 0},/turf/simulated/floor/plasteel{icon_state = "freezerfloor"},/area/awaymission/spacebattle/cruiser)
 "ii" = (/obj/machinery/sleeper,/turf/simulated/floor/plasteel{icon_state = "whitehall"; dir = 1},/area/awaymission/spacebattle/cruiser)
-"ij" = (/obj/machinery/sleep_console,/turf/simulated/floor/plasteel{icon_state = "whitehall"; dir = 1},/area/awaymission/spacebattle/cruiser)
 "ik" = (/turf/simulated/floor/plasteel{icon_state = "whitehall"; dir = 1},/area/awaymission/spacebattle/cruiser)
 "il" = (/obj/effect/landmark/corpse/engineer{mobname = "Cyrion"; name = "Cyrion"},/obj/item/weapon/flamethrower/full,/obj/effect/decal/cleanable/blood,/turf/simulated/floor/plasteel,/area/awaymission/spacebattle/cruiser)
 "im" = (/mob/living/simple_animal/hostile/syndicate/ranged,/turf/simulated/floor/plasteel,/area/awaymission/spacebattle/cruiser)
@@ -615,13 +613,13 @@ abababababababababababababababababababababababababababababababababababababababab
 ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababbUbVcdbZbZbZdedededfdfdgdgdhdhdhdididicbhOhPhQcbhRcbhRcbhRcbhRcbhRcbbZbZcbgFgFgFgFgFgFgFhScbbZbZcObSbSbSbSbSeGbSbSbSbScabSbSbSbSeGbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSeHcacacphTabababababababababababababababababababababababababdqdtbZbZbZbZbZbZbZbZbZbZbZbZcGcWcWababababababababababababababababababababababababababababhphehfhfhfhfhfhfhfgXgMabababababababababababababababab
 ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcdbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZcbhPhPhPcbhUhVhUhVhUhVhUhVhUcbbZbZcbgFhvgFgFgFgFhWhXcbbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZcYbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZcbabababababababababababababababababababababababababababcbbZbZbZbZbZbZbZbZbZbZcYbZcVcWdbababababababababababababababababababababababababababababhphehfhfhfhfhfhfhfhghhabababababababababababababababab
 ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcdbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZcbhYhPhZcbhPhPhPhPhPhPiahPhPcabZchcbgFgFgFgFgFibgRgFcbbZcYbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZcbabababababababababababababababababababababababababababcbbZbZbZbZbZbZbZbZbZbZbZbZdacWcWababababababababababababababababababababababababababababhphehfhfhfhfhfhfhfhghqabababababababababababababababab
-ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcsbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZcbhPhPhPgDichPhPhPhPhPidhPhPcabZbZcbieifgFieifgFieifcbbZbZcrbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbShTabababababababababababababababababababababababababababdqbSbSbSbSbSbSbSbSbSbSbSbSbSbSfiababababababababababababababababababababababababababababiggXgXgXgXgXgXgXgXgXhzabababababababababababababababab
+ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcsbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZcbhPhPhPgDichPhPhPhPhPidhPhPcabZbZcbiegFgFiegFgFiegFcbbZbZcrbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbSbShTabababababababababababababababababababababababababababdqbSbSbSbSbSbSbSbSbSbSbSbSbSbShTababababababababababababababababababababababababababababiggXgXgXgXgXgXgXgXgXhzabababababababababababababababab
 ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcsbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZcbhYhPhQhVhPhPhPhPhPhPiahPihcbbZbZcbgFgFgFgFgFgFgFgFcbbZbZcGcHcHcHcHcHcHcGababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababgLhzababababababababababababababababababababababab
-ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcsbZbZbZbZbZbZbZcobZbZbZbZbZbZbZbZcbhPhPhPhUhPhPhPhPhPhPhPhPihcbbZbZcbiiijikiiijikiiijcbbZbZcGcHcHcHcHcHcHcGababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
-ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcdbZbZbZbZbZbZbZbZbZilbZimcKcJbZcmcpbQbQbQbQbQbQbQbQbQbQbQbQbQeHbZbZcObSbSbSbSbSbSbSbSeHbZbZcpbQbQbQbQbQbQfiababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
+ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcsbZbZbZbZbZbZbZcobZbZbZbZbZbZbZbZcbhPhPhPhUhPhPhPhPhPhPhPhPihcbbZbZcbiiikikiiikikiiikcbbZbZcGcHcHcHcHcHcHcGababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
+ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcdbZbZbZbZbZbZbZbZbZilbZimcKcJbZcmcpbQbQbQbQbQbQbQbQbQbQbQbQbQeHbZbZcObSbSbSbSbSbSbSbSeHbZbZcpbQbQbQbQbQbQhTababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
 ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababccbVcdbZbZbZbZbZbZbZbZbZbZbZbZbZcKincKcabZbZbZbZimbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZcbabababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
 ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababiobVbWipbZbZbZbZbZbZimbZbZbZcIcIcKcmcKcabZbZbZbZbZbZbZbZbZbZbZbZbZbZbZbZchbZbZbZbZbZbZbZbZbZbZbZcbabababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
-ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababdqbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQeGbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbSbSbSbSbSbSbSbSbSbSbSfiabababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
+ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababdqbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQeGbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbQbSbSbSbSbSbSbSbSbSbSbShTabababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
 ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
 ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
 ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab
@@ -730,3 +728,4 @@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 "}
+

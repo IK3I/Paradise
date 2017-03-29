@@ -1,10 +1,10 @@
-/mob/living/carbon/human/say(var/message)
+/mob/living/carbon/human/say(var/message, var/sanitize = TRUE, var/ignore_speech_problems = FALSE, var/ignore_atmospherics = FALSE)
 	var/alt_name = ""
 
 	if(name != GetVoice())
 		alt_name = " (as [get_id_name("Unknown")])"
 
-	..(message, alt_name = alt_name)	//ohgod we should really be passing a datum here.
+	..(message, alt_name = alt_name, sanitize = sanitize, ignore_speech_problems = ignore_speech_problems, ignore_atmospherics = ignore_atmospherics)	//ohgod we should really be passing a datum here.
 
 /mob/living/carbon/human/proc/forcesay(list/append)
 	if(stat == CONSCIOUS)
@@ -38,8 +38,7 @@
 					say(temp)
 				winset(client, "input", "text=[null]")
 
-/mob/living/carbon/human/say_understands(var/mob/other,var/datum/language/speaking = null)
-
+/mob/living/carbon/human/say_understands(var/mob/other, var/datum/language/speaking = null)
 	if(has_brain_worms()) //Brain worms translate everything. Even mice and alien speak.
 		return 1
 
@@ -47,24 +46,18 @@
 		return 1
 
 	//These only pertain to common. Languages are handled by mob/say_understands()
-	if (!speaking)
-		if (istype(other, /mob/living/simple_animal/diona))
+	if(!speaking)
+		if(istype(other, /mob/living/simple_animal/diona))
 			if(other.languages.len >= 2) //They've sucked down some blood and can speak common now.
 				return 1
-		if (istype(other, /mob/living/silicon))
+		if(issilicon(other))
 			return 1
-		if (istype(other, /mob/living/simple_animal/bot))
+		if(isbot(other))
 			return 1
-		if (istype(other, /mob/living/carbon/brain))
+		if(isbrain(other))
 			return 1
-		if (istype(other, /mob/living/carbon/slime))
+		if(isslime(other))
 			return 1
-
-	//This is already covered by mob/say_understands()
-	//if (istype(other, /mob/living/simple_animal))
-	//	if((other.universal_speak && !speaking) || src.universal_speak || src.universal_understand)
-	//		return 1
-	//	return 0
 
 	return ..()
 
@@ -112,8 +105,11 @@
 /mob/living/carbon/human/handle_speech_problems(var/message, var/verb)
 	var/list/returns[3]
 	var/speech_problem_flag = 0
+	var/span = ""
+	if(mind)
+		span = mind.speech_span
 
-	if(silent || (sdisabilities & MUTE))
+	if(silent || (disabilities & MUTE))
 		message = ""
 		speech_problem_flag = 1
 
@@ -149,6 +145,11 @@
 				message = uppertext(message)
 				verb = "yells loudly"
 
+	if((COMIC in mutations) || (locate(/obj/item/organ/internal/cyberimp/brain/clown_voice) in internal_organs))
+		span = "sans"
+
+	if(span)
+		message = "<span class='[span]'>[message]</span>"
 	returns[1] = message
 	returns[2] = verb
 	returns[3] = speech_problem_flag
@@ -163,53 +164,53 @@
 				used_radios += I
 
 		if("headset")
-			if(l_ear && istype(l_ear,/obj/item/device/radio))
-				var/obj/item/device/radio/R = l_ear
-				R.talk_into(src,message,null,verb,speaking)
-				used_radios += l_ear
-			else if(r_ear && istype(r_ear,/obj/item/device/radio))
-				var/obj/item/device/radio/R = r_ear
-				R.talk_into(src,message,null,verb,speaking)
-				used_radios += r_ear
+			var/obj/item/device/radio/R = null
+			if(isradio(l_ear))
+				R = l_ear
+				used_radios += R
+				if(R.talk_into(src, message, null, verb, speaking))
+					return
+
+			if(isradio(r_ear))
+				R = r_ear
+				used_radios += R
+				if(R.talk_into(src, message, null, verb, speaking))
+					return
 
 		if("right ear")
 			var/obj/item/device/radio/R
-			var/has_radio = 0
-			if(r_ear && istype(r_ear,/obj/item/device/radio))
+			if(isradio(r_ear))
 				R = r_ear
-				has_radio = 1
-			if(r_hand && istype(r_hand, /obj/item/device/radio))
+			else if(isradio(r_hand))
 				R = r_hand
-				has_radio = 1
-			if(has_radio)
-				R.talk_into(src,message,null,verb,speaking)
+			if(R)
 				used_radios += R
-
+				R.talk_into(src, message, null, verb, speaking)
 
 		if("left ear")
 			var/obj/item/device/radio/R
-			var/has_radio = 0
-			if(l_ear && istype(l_ear,/obj/item/device/radio))
+			if(isradio(l_ear))
 				R = l_ear
-				has_radio = 1
-			if(l_hand && istype(l_hand,/obj/item/device/radio))
+			else if(isradio(l_hand))
 				R = l_hand
-				has_radio = 1
-			if(has_radio)
-				R.talk_into(src,message,null,verb,speaking)
+			if(R)
 				used_radios += R
+				R.talk_into(src, message, null, verb, speaking)
 
 		if("whisper")
 			whisper_say(message, speaking, alt_name)
 			return 1
 		else
 			if(message_mode)
-				if(l_ear && istype(l_ear,/obj/item/device/radio))
-					l_ear.talk_into(src,message, message_mode, verb, speaking)
+				if(isradio(l_ear))
 					used_radios += l_ear
-				else if(r_ear && istype(r_ear,/obj/item/device/radio))
-					r_ear.talk_into(src,message, message_mode, verb, speaking)
+					if(l_ear.talk_into(src, message, message_mode, verb, speaking))
+						return
+
+				if(isradio(r_ear))
 					used_radios += r_ear
+					if(r_ear.talk_into(src, message, message_mode, verb, speaking))
+						return
 
 /mob/living/carbon/human/handle_speech_sound()
 	var/list/returns[2]
@@ -217,3 +218,16 @@
 		returns[1] = sound(pick(species.speech_sounds))
 		returns[2] = 50
 	return returns
+
+/mob/living/carbon/human/binarycheck()
+	. = FALSE
+	var/obj/item/device/radio/headset/R
+	if(istype(l_ear, /obj/item/device/radio/headset))
+		R = l_ear
+		if(R.translate_binary)
+			. = TRUE
+
+	if(istype(r_ear, /obj/item/device/radio/headset))
+		R = r_ear
+		if(R.translate_binary)
+			. = TRUE

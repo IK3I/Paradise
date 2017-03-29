@@ -170,7 +170,7 @@
 
 /obj/item/weapon/grenade/clusterbuster/honk
 	name = "Mega Honk Grenade"
-	payload = /obj/item/weapon/bananapeel
+	payload = /obj/item/weapon/grown/bananapeel
 
 /obj/item/weapon/grenade/clusterbuster/honk_evil
 	name = "Evil Mega Honk Grenade"
@@ -241,6 +241,16 @@
 	name = "Crab Grenade"
 	desc = "Reserved for those pesky request."
 	payload = /mob/living/simple_animal/crab
+
+/obj/item/weapon/grenade/clusterbuster/plasma
+	name = "Plasma Cluster Grenade"
+	desc = "For when everything needs to die in a fire."
+	payload = /obj/item/weapon/grenade/gas
+
+/obj/item/weapon/grenade/clusterbuster/n2o
+	name = "N2O Cluster Grenade"
+	desc = "For when you need to knock out EVERYONE."
+	payload = /obj/item/weapon/grenade/gas/knockout
 
 ////////////Clusterbuster of Clusterbusters////////////
 

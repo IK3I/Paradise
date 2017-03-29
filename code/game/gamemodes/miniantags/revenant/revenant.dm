@@ -17,8 +17,8 @@
 	invisibility = INVISIBILITY_REVENANT
 	health =  INFINITY //Revenants don't use health, they use essence instead
 	maxHealth =  INFINITY
-	see_invisible = INVISIBILITY_REVENANT
 	see_in_dark = 8
+	see_invisible = SEE_INVISIBLE_OBSERVER_NOLIGHTING
 	universal_understand = 1
 	response_help   = "passes through"
 	response_disarm = "swings at"
@@ -29,12 +29,13 @@
 	harm_intent_damage = 0
 	friendly = "touches"
 	status_flags = 0
-	see_in_dark = 8
 	wander = 0
 	density = 0
 	flying = 1
 	anchored = 1
+	mob_size = MOB_SIZE_TINY
 	pass_flags = PASSTABLE | PASSGRILLE | PASSMOB
+	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
 
 	var/essence = 75 //The resource of revenants. Max health is equal to three times this amount
 	var/essence_regen_cap = 75 //The regeneration cap of essence (go figure); regenerates every Life() tick up to this amount.
@@ -81,7 +82,7 @@
 /mob/living/simple_animal/revenant/narsie_act()
 	return //most humans will now be either bones or harvesters, but we're still un-alive.
 
-/mob/living/simple_animal/revenant/adjustBruteLoss(amount)
+/mob/living/simple_animal/revenant/adjustHealth(amount)
 	if(!revealed)
 		return
 	essence = max(0, essence-amount)
@@ -99,7 +100,7 @@
 		if(istype(M, /mob/living/simple_animal/revenant))
 			to_chat(M, rendered)
 		if(isobserver(M))
-			to_chat(M, "<a href='?src=\ref[M];follow=\ref[src]'>(F)</a> [rendered]")
+			to_chat(M, "<a href='?src=[M.UID()];follow=\ref[src]'>(F)</a> [rendered]")
 	return
 
 /mob/living/simple_animal/revenant/Stat()
@@ -164,7 +165,7 @@
 
 /mob/living/simple_animal/revenant/death()
 	..()
-	if(!revealed || stat == DEAD) //Revenants cannot die if they aren't revealed //or are already dead
+	if(!revealed)
 		return
 	ghost_darkness_images -= ghostimage
 	updateallghostimages()
@@ -187,7 +188,6 @@
 	ghostize()
 	qdel(src)
 	return
-
 
 /mob/living/simple_animal/revenant/attackby(obj/item/W, mob/living/user, params)
 	if(istype(W, /obj/item/weapon/nullrod))
@@ -390,7 +390,7 @@
 		player_mind.active = 1
 		player_mind.transfer_to(R)
 		player_mind.assigned_role = "revenant"
-		player_mind.special_role = "Revenant"
+		player_mind.special_role = SPECIAL_ROLE_REVENANT
 		ticker.mode.traitors |= player_mind
 		message_admins("[key_of_revenant] has been [client_to_revive ? "re":""]made into a revenant by reforming ectoplasm.")
 		log_game("[key_of_revenant] was [client_to_revive ? "re":""]made as a revenant by reforming ectoplasm.")

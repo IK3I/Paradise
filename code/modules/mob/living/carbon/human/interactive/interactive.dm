@@ -132,7 +132,6 @@
 	job = myjob.title
 	mind.assigned_role = job
 	myjob.equip(src)
-	myjob.apply_fingerprints(T)
 
 /mob/living/carbon/human/interactive/proc/reset()
 	walk(src, 0)
@@ -167,7 +166,7 @@
 
 /client/proc/customiseSNPC(mob/living/carbon/human/interactive/T in npc_master.botPool_l)
 	set name = "Customize SNPC"
-	set desc = "Customise the SNPC"
+	set desc = "Customize the SNPC"
 	set category = "Debug"
 
 	if(!holder)
@@ -193,7 +192,6 @@
 		for(var/obj/item/W in T)
 			qdel(W)
 		T.myjob.equip(T)
-		T.myjob.apply_fingerprints(T)
 		T.doSetup(alt_title)
 
 	var/shouldDoppel = input("Do you want the SNPC to disguise themself as a crewmember?") as anything in list("Yes", "No")
@@ -258,12 +256,15 @@
 	RPID.access = myjob.get_access()
 
 	equip_to_slot_or_del(MYID, slot_wear_id)
-	MYPDA = new(src)
+	if(wear_pda)
+		MYPDA = wear_pda
+	else
+		MYPDA = new(src)
+		equip_to_slot_or_del(MYPDA, slot_wear_pda)
 	MYPDA.owner = real_name
 	MYPDA.ownjob = alt_title
 	MYPDA.ownrank = job
 	MYPDA.name = "PDA-[real_name] ([alt_title])"
-	equip_to_slot_or_del(MYPDA, slot_belt)
 	zone_sel.selecting = "chest"
 	//arms
 	if(prob((SNPC_FUZZY_CHANCE_LOW+SNPC_FUZZY_CHANCE_HIGH)/4))
@@ -317,7 +318,7 @@
 		if("Captain", "Head of Personnel")
 			favoured_types = list(/obj/item/clothing, /obj/item/weapon/stamp/captain,/obj/item/weapon/disk/nuclear)
 		if("Nanotrasen Representative")
-			favoured_types = list(/obj/item/clothing, /obj/item/weapon/stamp/centcom, /obj/item/weapon/paper, /obj/item/weapon/melee/baton/loaded/ntcane)
+			favoured_types = list(/obj/item/clothing, /obj/item/weapon/stamp/centcom, /obj/item/weapon/paper, /obj/item/weapon/melee/classic_baton/ntcane)
 			functions += "paperwork"
 		if("Magistrate", "Internal Affairs Agent")
 			favoured_types = list(/obj/item/clothing, /obj/item/weapon/stamp/law, /obj/item/weapon/paper)
@@ -346,10 +347,10 @@
 			favoured_types = list(/obj/item/weapon/mop, /obj/item/weapon/reagent_containers/glass/bucket, /obj/item/weapon/reagent_containers/spray/cleaner, /obj/effect/decal/cleanable)
 			functions += "dojanitor"
 		if("Clown")
-			favoured_types = list(/obj/item/weapon/soap, /obj/item/weapon/reagent_containers/food/snacks/grown/banana, /obj/item/weapon/bananapeel)
+			favoured_types = list(/obj/item/weapon/soap, /obj/item/weapon/reagent_containers/food/snacks/grown/banana, /obj/item/weapon/grown/bananapeel)
 			functions += "clowning"
 		if("Botanist")
-			favoured_types = list(/obj/machinery/portable_atmospherics/hydroponics,  /obj/item/weapon/reagent_containers, /obj/item/weapon)
+			favoured_types = list(/obj/machinery/hydroponics,  /obj/item/weapon/reagent_containers, /obj/item/weapon)
 			functions += "botany"
 			restrictedJob = 1
 		else
@@ -361,7 +362,7 @@
 	traitorType = inPers
 
 	ticker.mode.traitors += mind
-	mind.special_role = "traitor"
+	mind.special_role = SPECIAL_ROLE_TRAITOR
 	var/datum/mindslaves/slaved = new()
 	slaved.masters += mind
 	mind.som = slaved
@@ -400,7 +401,7 @@
 	if(!hud_used)
 		hud_used = new /datum/hud/human(src)
 
-/mob/living/carbon/human/interactive/New()
+/mob/living/carbon/human/interactive/New(var/new_loc, var/new_species = null)
 	..()
 	snpc_list += src
 
@@ -630,8 +631,6 @@
 										AL.wires.UpdatePulsed(AIRLOCK_WIRE_DOOR_BOLTS)
 									if(!AL.wires.IsIndexCut(AIRLOCK_WIRE_MAIN_POWER1))
 										AL.wires.CutWireIndex(AIRLOCK_WIRE_MAIN_POWER1)
-									if(!AL.wires.IsIndexCut(AIRLOCK_WIRE_MAIN_POWER2))
-										AL.wires.CutWireIndex(AIRLOCK_WIRE_MAIN_POWER2)
 									if(prob(mistake_chance) && !AL.wires.IsIndexCut(AIRLOCK_WIRE_SAFETY))
 										AL.wires.CutWireIndex(AIRLOCK_WIRE_SAFETY)
 									if(prob(mistake_chance) && !AL.wires.IsIndexCut(AIRLOCK_WIRE_ELECTRIFY))
@@ -836,7 +835,7 @@
 		return 0
 
 	if(myPath.len <= 0)
-		myPath = get_path_to(src, get_turf(target), /turf/proc/Distance, SNPC_MAX_RANGE_FIND + 1, 250,1, id=Path_ID)
+		myPath = get_path_to(src, get_turf(target), /turf/proc/Distance, SNPC_MAX_RANGE_FIND + 1, 250,1, id=Path_ID, simulated_only = 0)
 
 	if(myPath)
 		if(myPath.len > 0)
@@ -913,7 +912,7 @@
 				TARGET = null
 				return 1
 
-	if(!(get_turf(src) in validHome))
+	if(!(get_turf(src) in validHome) && validHome.len)
 		tryWalk(pick(get_area_turfs(job2area(myjob))))
 		return 1
 	return 0

@@ -114,7 +114,7 @@
 		var/turf/t = turf
 		if(obscuredTurfs[t])
 			if(!t.obscured)
-				t.obscured = image('icons/effects/cameravis.dmi', t, "black", 15)
+				t.obscured = image('icons/effects/cameravis.dmi', t, null, 15)
 
 			obscured += t.obscured
 			for(var/eye in seenby)
@@ -142,7 +142,7 @@
 		if(c.can_use())
 			cameras += c
 
-	for(var/turf/t in block(locate(x, y, z), locate(min(x + CHUNK_SIZE - 1, world.maxx), min(y + CHUNK_SIZE - 1, world.maxy), z)))
+	for(var/turf/t in block(locate(max(x, 1), max(y, 1), max(z, 1)), locate(min(x + CHUNK_SIZE - 1, world.maxx), min(y + CHUNK_SIZE - 1, world.maxy), z)))
 		turfs[t] = t
 
 	for(var/camera in cameras)

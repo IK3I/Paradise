@@ -16,6 +16,7 @@ Pipelines + Other Objects -> Pipe network
 	idle_power_usage = 0
 	active_power_usage = 0
 	power_channel = ENVIRON
+	on_blueprints = TRUE
 	var/nodealert = 0
 	var/can_unwrench = 0
 
@@ -31,6 +32,8 @@ Pipelines + Other Objects -> Pipe network
 	var/global/datum/pipe_icon_manager/icon_manager
 
 /obj/machinery/atmospherics/New()
+	..()
+
 	if(!icon_manager)
 		icon_manager = new()
 
@@ -40,8 +43,8 @@ Pipelines + Other Objects -> Pipe network
 
 	if(!pipe_color_check(pipe_color))
 		pipe_color = null
-
-	..()
+	// No need for a tween worldstart roundstart handler - pipenet creation is
+	// handled there
 
 /obj/machinery/atmospherics/initialize()
 	..()
@@ -64,6 +67,10 @@ Pipelines + Other Objects -> Pipe network
 // Icons/overlays/underlays
 /obj/machinery/atmospherics/update_icon()
 	return null
+
+/obj/machinery/atmospherics/proc/update_pipe_image()
+	pipe_image = image(src, loc, layer = 20, dir = dir) //the 20 puts it above Byond's darkness (not its opacity view)
+	pipe_image.plane = HUD_PLANE
 
 /obj/machinery/atmospherics/proc/check_icon_cache(var/safety = 0)
 	if(!istype(icon_manager))
@@ -155,7 +162,7 @@ Pipelines + Other Objects -> Pipe network
 /obj/machinery/atmospherics/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
 	if(can_unwrench && istype(W, /obj/item/weapon/wrench))
 		var/turf/T = get_turf(src)
-		if (level == 1 && isturf(T) && T.intact)
+		if(level == 1 && isturf(T) && T.intact)
 			to_chat(user, "<span class='danger'>You must remove the plating first.</span>")
 			return 1
 		var/datum/gas_mixture/int_air = return_air()
@@ -165,13 +172,13 @@ Pipelines + Other Objects -> Pipe network
 		var/unsafe_wrenching = FALSE
 		var/internal_pressure = int_air.return_pressure()-env_air.return_pressure()
 
-		playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
+		playsound(src.loc, W.usesound, 50, 1)
 		to_chat(user, "<span class='notice'>You begin to unfasten \the [src]...</span>")
-		if (internal_pressure > 2*ONE_ATMOSPHERE)
+		if(internal_pressure > 2*ONE_ATMOSPHERE)
 			to_chat(user, "<span class='warning'>As you begin unwrenching \the [src] a gush of air blows in your face... maybe you should reconsider?</span>")
 			unsafe_wrenching = TRUE //Oh dear oh dear
 
-		if (do_after(user, 40, target = src) && isnull(gcDestroyed))
+		if(do_after(user, 40 * W.toolspeed, target = src) && isnull(gcDestroyed))
 			user.visible_message( \
 				"[user] unfastens \the [src].", \
 				"<span class='notice'>You have unfastened \the [src].</span>", \
@@ -292,7 +299,7 @@ Pipelines + Other Objects -> Pipe network
 			add_underlay_adapter(T, , node_dir, "")
 			add_underlay_adapter(T, node, node_dir, "-supply")
 			add_underlay_adapter(T, , node_dir, "-scrubbers")
-		else if (node.icon_connect_type == "-scrubbers")
+		else if(node.icon_connect_type == "-scrubbers")
 			add_underlay_adapter(T, , node_dir, "")
 			add_underlay_adapter(T, , node_dir, "-supply")
 			add_underlay_adapter(T, node, node_dir, "-scrubbers")
@@ -317,3 +324,6 @@ Pipelines + Other Objects -> Pipe network
 /obj/machinery/atmospherics/singularity_pull(S, current_size)
 	if(current_size >= STAGE_FIVE)
 		Deconstruct()
+
+/obj/machinery/atmospherics/update_remote_sight(mob/user)
+	user.sight |= (SEE_TURFS|BLIND)

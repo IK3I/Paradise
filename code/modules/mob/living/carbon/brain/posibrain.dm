@@ -1,6 +1,6 @@
 /obj/item/device/mmi/posibrain
 	name = "positronic brain"
-	desc = "A cube of shining metal, four inches to a side and covered in shallow grooves. The speaker switch is set to 'on'."
+	desc = "A cube of shining metal, four inches to a side and covered in shallow grooves."
 	icon = 'icons/obj/assemblies.dmi'
 	icon_state = "posibrain"
 	w_class = 3
@@ -13,12 +13,16 @@
 	req_access = list(access_robotics)
 	mecha = null//This does not appear to be used outside of reference in mecha.dm.
 	var/silenced = 0 //if set to 1, they can't talk.
+	var/next_ping_at = 0
 
+/obj/item/device/mmi/posibrain/examine(mob/user)
+	if(..(user, 1))
+		to_chat(user, "Its speaker is turned [silenced ? "off" : "on"].")
 
-/obj/item/device/mmi/posibrain/attack_self(mob/user as mob)
+/obj/item/device/mmi/posibrain/attack_self(mob/user)
 	if(brainmob && !brainmob.key && searching == 0)
 		//Start the process of searching for a new user.
-		to_chat(user, "\blue You carefully locate the manual activation switch and start the positronic brain's boot process.")
+		to_chat(user, "<span class='notice'>You carefully locate the manual activation switch and start the positronic brain's boot process.</span>")
 		icon_state = "posibrain-searching"
 		ghost_volunteers.Cut()
 		src.searching = 1
@@ -30,28 +34,22 @@
 					transfer_personality(O)
 			reset_search()
 	else
-		if(silenced)
-			silenced = 0
-			to_chat(user, "<span class='notice'>You toggle the speaker to 'on', on the [src].</span>")
-			desc = "A cube of shining metal, four inches to a side and covered in shallow grooves. The speaker switch is set to 'on'."
-			if(brainmob && brainmob.key)
-				to_chat(brainmob, "<span class='warning'>Your internal speaker has been toggled to 'on'.</span>")
-		else
-			silenced = 1
-			to_chat(user, "<span class='notice'>You toggle the speaker to 'off', on the [src].</span>")
-			desc = "A cube of shining metal, four inches to a side and covered in shallow grooves. The speaker switch is set to 'off'."
-			if(brainmob && brainmob.key)
-				to_chat(brainmob, "<span class='warning'>Your internal speaker has been toggled to 'off'.</span>")
+		silenced = !silenced
+		to_chat(user, "<span class='notice'>You toggle the speaker [silenced ? "off" : "on"].</span>")
+		if(brainmob && brainmob.key)
+			to_chat(brainmob, "<span class='warning'>Your internal speaker has been toggled [silenced ? "off" : "on"].</span>")		
 
 /obj/item/device/mmi/posibrain/proc/request_player()
 	for(var/mob/dead/observer/O in player_list)
 		if(check_observer(O))
-			to_chat(O, "<span class='boldnotice'>\A [src] has been activated. (<a href='?src=\ref[O];jump=\ref[src]'>Teleport</a> | <a href='?src=\ref[src];signup=\ref[O]'>Sign Up</a>)</span>")
+			to_chat(O, "<span class='boldnotice'>\A [src] has been activated. (<a href='?src=[O.UID()];jump=\ref[src]'>Teleport</a> | <a href='?src=[UID()];signup=\ref[O]'>Sign Up</a>)</span>")
 
 /obj/item/device/mmi/posibrain/proc/check_observer(var/mob/dead/observer/O)
 	if(O.has_enabled_antagHUD == 1 && config.antag_hud_restricted)
 		return 0
 	if(jobban_isbanned(O, "Cyborg") || jobban_isbanned(O,"nonhumandept"))
+		return 0
+	if(!O.can_reenter_corpse)
 		return 0
 	if(O.client)
 		return 1
@@ -64,12 +62,12 @@
 		if(!C || brainmob.key || 0 == searching)	return		//handle logouts that happen whilst the alert is waiting for a response, and responses issued after a brain has been located.
 		if(response == "Yes")
 			transfer_personality(C.mob)
-		else if (response == "Never for this round")
+		else if(response == "Never for this round")
 			C.prefs.be_special -= ROLE_POSIBRAIN
 
 // This should not ever happen, but let's be safe
 /obj/item/device/mmi/posibrain/dropbrain(var/turf/dropspot)
-	log_to_dd("[src] at [loc] attempted to drop brain without a contained brain.")
+	log_runtime(EXCEPTION("[src] at [loc] attempted to drop brain without a contained brain."), src)
 	return
 
 /obj/item/device/mmi/posibrain/transfer_identity(var/mob/living/carbon/H)
@@ -99,7 +97,7 @@
 	src.brainmob.mind.assigned_role = "Positronic Brain"
 
 	var/turf/T = get_turf_or_move(src.loc)
-	for (var/mob/M in viewers(T))
+	for(var/mob/M in viewers(T))
 		M.show_message("\blue The positronic brain chimes quietly.")
 	icon_state = "posibrain-occupied"
 
@@ -110,7 +108,7 @@
 	icon_state = "posibrain"
 
 	var/turf/T = get_turf_or_move(src.loc)
-	for (var/mob/M in viewers(T))
+	for(var/mob/M in viewers(T))
 		M.show_message("\blue The positronic brain buzzes quietly, and the golden lights fade away. Perhaps you could try again?")
 
 /obj/item/device/mmi/posibrain/Topic(href,href_list)
@@ -144,11 +142,12 @@
 
 
 /obj/item/device/mmi/posibrain/examine(mob/user)
+	to_chat(user, "<span class='info'>*---------*</span>")
 	if(!..(user))
+		to_chat(user, "<span class='info'>*---------*</span>")
 		return
 
-	var/msg = "<span class='info'>*---------*\nThis is \icon[src] \a <EM>[src]</EM>!\n[desc]\n"
-	msg += "<span class='warning'>"
+	var/msg = "<span class='info'>"
 
 	if(src.brainmob && src.brainmob.key)
 		switch(src.brainmob.stat)
@@ -158,7 +157,7 @@
 			if(DEAD)			msg += "<span class='deadsay'>It appears to be completely inactive.</span>\n"
 	else
 		msg += "<span class='deadsay'>It appears to be completely inactive.</span>\n"
-	msg += "<span class='info'>*---------*</span>"
+	msg += "*---------*</span>"
 	to_chat(user, msg)
 
 /obj/item/device/mmi/posibrain/emp_act(severity)
@@ -181,8 +180,7 @@
 	src.brainmob.loc = src
 	src.brainmob.container = src
 	src.brainmob.stat = 0
-	src.brainmob.silent = 0
-	src.brainmob.brain_op_stage = 4.0
+	src.brainmob.SetSilence(0)
 	dead_mob_list -= src.brainmob
 
 	..()
@@ -190,9 +188,14 @@
 /obj/item/device/mmi/posibrain/attack_ghost(var/mob/dead/observer/O)
 	if(searching)
 		volunteer(O)
-	else
+		return
+	if(brainmob && brainmob.key)
+		return // No point pinging a posibrain with a player already inside
+	if(check_observer(O) && (world.time >= next_ping_at))
+		next_ping_at = world.time + (20 SECONDS)
+		playsound(get_turf(src), 'sound/items/posiping.ogg', 80, 0)
 		var/turf/T = get_turf_or_move(src.loc)
-		for (var/mob/M in viewers(T))
+		for(var/mob/M in viewers(T))
 			M.show_message("\blue The positronic brain pings softly.")
 
 /obj/item/device/mmi/posibrain/ipc

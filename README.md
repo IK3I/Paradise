@@ -1,6 +1,6 @@
 # Paradise
 
-[Website](http://www.nanotrasen.se/) - [Code](https://github.com/ParadiseSS13/Paradise) - [IRC](http://www.nanotrasen.se/phpBB3/viewtopic.php?f=10&t=1113)
+[Website](http://www.nanotrasen.se/) - [Code](https://github.com/ParadiseSS13/Paradise) - [Discord](https://discordapp.com/invite/gXZMc?utm_source=Discord%20Widget&utm_medium=Connect)
 
 ---
 
@@ -120,8 +120,11 @@ including addons and modifications you have made.
 
 See [this](https://www.gnu.org/licenses/why-affero-gpl.html) for more information.
 
-Any files located in the `Paradise/icons/goonstation` and `Paradise/sound/goonstation`
-folders, and any of their subdirectories, are licensed under the
+Any files located in the
+`Paradise/goon`,
+`Paradise/icons/goonstation`, or
+`Paradise/sound/goonstation`
+directories, or any subdirectories of mentioned directories are licensed under the
 Creative Commons 3.0 BY-NC-SA license
 (https://creativecommons.org/licenses/by-nc-sa/3.0)
 

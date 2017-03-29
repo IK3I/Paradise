@@ -11,7 +11,7 @@
 
 /obj/structure/closet/crate/secure/loot/New()
 	..()
-	var/list/digits = list("1", "2", "3", "4", "5", "6", "7", "8", "9", "z")
+	var/list/digits = list("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
 	code = ""
 	for(var/i = 0, i < codelen, i++)
 		var/dig = pick(digits)
@@ -22,7 +22,7 @@
 	switch(loot)
 		if(1 to 5) //5% chance
 			new /obj/item/weapon/reagent_containers/food/drinks/bottle/rum(src)
-			new /obj/item/weapon/reagent_containers/food/snacks/grown/ambrosiadeus(src)
+			new /obj/item/weapon/reagent_containers/food/snacks/grown/ambrosia/deus(src)
 			new /obj/item/weapon/reagent_containers/food/drinks/bottle/whiskey(src)
 			new /obj/item/weapon/lighter(src)
 		if(6 to 10)
@@ -41,11 +41,9 @@
 		if(21 to 25)
 			for(var/i in 1 to 5)
 				new /obj/item/weapon/contraband/poster(src)
-		if(26 to 30)
+		if(26 to 35)
 			for(var/i in 1 to 3)
 				new /obj/item/weapon/reagent_containers/glass/beaker/noreact(src)
-		if(31 to 35)
-			new /obj/item/seeds/cash(src)
 		if(36 to 40)
 			new /obj/item/weapon/melee/baton(src)
 		if(41 to 45)
@@ -65,7 +63,7 @@
 		if(57 to 58)
 			new /obj/item/toy/syndicateballoon(src)
 		if(59 to 60)
-			new /obj/item/weapon/gun/energy/kinetic_accelerator/hyper(src)
+			new /obj/item/borg/upgrade/modkit/aoe/mobs(src)
 			new /obj/item/clothing/suit/space(src)
 			new /obj/item/clothing/head/helmet/space(src)
 		if(61 to 62)
@@ -156,16 +154,16 @@
 		to_chat(user, "<span class='notice'>The crate is locked with a Deca-code lock.</span>")
 		var/input = input(usr, "Enter [codelen] digits.", "Deca-Code Lock", "") as text
 		if(in_range(src, user))
-			if (input == code)
+			if(input == code)
 				to_chat(user, "<span class='notice'>The crate unlocks!</span>")
 				locked = 0
 				overlays.Cut()
 				overlays += "securecrateg"
-			else if (input == null || length(input) != codelen)
+			else if(input == null || length(input) != codelen)
 				to_chat(user, "<span class='notice'>You leave the crate alone.</span>")
 			else
 				to_chat(user, "<span class='warning'>A red light flashes.</span>")
-				lastattempt = replacetext(input, 0, "z")
+				lastattempt = input
 				attempts--
 				if(attempts == 0)
 					boom(user)
@@ -179,6 +177,7 @@
 	if(locked)
 		if(istype(W, /obj/item/weapon/card/emag))
 			boom(user)
+			return 1
 		if(istype(W, /obj/item/device/multitool))
 			to_chat(user, "<span class='notice'>DECA-CODE LOCK REPORT:</span>")
 			if(attempts == 1)
@@ -186,22 +185,24 @@
 			else
 				to_chat(user, "<span class='notice'>* Anti-Tamper Bomb will activate after [src.attempts] failed access attempts.</span>")
 			if(lastattempt != null)
-				var/list/guess = list()
 				var/bulls = 0
 				var/cows = 0
-				for(var/i = 1, i < codelen + 1, i++)
-					var/a = copytext(lastattempt, i, i+1) //Stuff the code into the list
-					guess += a
-					guess[a] = i
-				for(var/i in guess) //Go through list and count matches
-					var/a = findtext(code, i)
-					if(a == guess[i])
-						++bulls
-					else if(a)
-						++cows
+				var/list/banned = list()
+				for(var/i in 1 to codelen)
+					var/list/a = copytext(lastattempt, i, i + 1)
+					if(a in banned)
+						continue
+					var/g = findtext(code, a)
+					if(g)
+						banned += a
+						if(g == i)
+							++bulls
+						else
+							++cows
+
 				to_chat(user, "<span class='notice'>Last code attempt had [bulls] correct digits at correct positions and [cows] correct digits at incorrect positions.</span>")
-		else ..()
-	else ..()
+			return 1
+	return ..()
 
 /obj/structure/closet/crate/secure/loot/togglelock(mob/user)
 	if(locked)

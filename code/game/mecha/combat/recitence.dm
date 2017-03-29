@@ -16,10 +16,11 @@
 	max_equip = 3
 	step_energy_drain = 3
 	stepsound = null
+	turnsound = null
 
 /obj/mecha/combat/recitence/loaded/New()
 	..()
 	var/obj/item/mecha_parts/mecha_equipment/ME = new /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/carbine/silenced
 	ME.attach(src)
-	ME = new /obj/item/mecha_parts/mecha_equipment/tool/mimercd //HAHA IT MAKES WALLS GET IT
+	ME = new /obj/item/mecha_parts/mecha_equipment/mimercd //HAHA IT MAKES WALLS GET IT
 	ME.attach(src)

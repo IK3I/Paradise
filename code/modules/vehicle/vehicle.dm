@@ -13,10 +13,10 @@
 	var/vehicle_move_delay = 2 //tick delay between movements, lower = faster, higher = slower
 	var/auto_door_open = TRUE
 	var/needs_gravity = 0//To allow non-space vehicles to move in no gravity or not, mostly for adminbus
-
 	//Pixels
 	var/generic_pixel_x = 0 //All dirs show this pixel_x for the driver
 	var/generic_pixel_y = 0 //All dirs shwo this pixel_y for the driver
+	var/spaceworthy = FALSE
 
 
 /obj/vehicle/New()
@@ -131,6 +131,8 @@
 
 
 /obj/vehicle/Bump(atom/movable/M)
+	if(!spaceworthy && isspaceturf(get_turf(src)))
+		return 0
 	. = ..()
 	if(auto_door_open)
 		if(istype(M, /obj/machinery/door) && buckled_mob)
@@ -144,7 +146,7 @@
 	if(has_gravity(src))
 		return 1
 
-	if(pulledby)
+	if(pulledby && pulledby != buckled_mob)	// no pulling the vehicle you're driving through space!
 		return 1
 
 	if(needs_gravity)
@@ -154,6 +156,7 @@
 
 /obj/vehicle/space
 	pressure_resistance = INFINITY
+	spaceworthy = TRUE
 
 /obj/vehicle/space/Process_Spacemove(direction)
 	return 1

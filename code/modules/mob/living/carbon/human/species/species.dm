@@ -16,6 +16,7 @@
 
 	var/eyes = "eyes_s"                                  // Icon for eyes.
 	var/blurb = "A completely nondescript species."      // A brief lore summary for use in the chargen screen.
+	var/butt_sprite = "human"
 
 	var/primitive_form            // Lesser form, if any (ie. monkey for humans)
 	var/greater_form              // Greater form, if any, ie. human for monkeys.
@@ -41,12 +42,14 @@
 	var/heat_level_3_breathe = 1000 // Heat damage level 3 above this point; used for breathed air temperature
 
 	var/body_temperature = 310.15	//non-IS_SYNTHETIC species will try to stabilize at this temperature. (also affects temperature processing)
-	var/passive_temp_gain = 0			//IS_SYNTHETIC species will gain this much temperature every second
 	var/reagent_tag                 //Used for metabolizing reagents.
+	var/hunger_drain = HUNGER_FACTOR
+	var/digestion_ratio = 1 //How quickly the species digests/absorbs reagents.
 
 	var/siemens_coeff = 1 //base electrocution coefficient
 
-	var/darksight = 2
+	var/invis_sight = SEE_INVISIBLE_LIVING
+
 	var/hazard_high_pressure = HAZARD_HIGH_PRESSURE   // Dangerously high pressure.
 	var/warning_high_pressure = WARNING_HIGH_PRESSURE // High pressure warning.
 	var/warning_low_pressure = WARNING_LOW_PRESSURE   // Low pressure warning.
@@ -65,8 +68,13 @@
 		"sa_sleep" = 5
 		)
 
-	var/brute_mod = null    // Physical damage reduction/malus.
-	var/burn_mod = null     // Burn damage reduction/malus.
+	var/brute_mod = 1    // Physical damage reduction/amplification
+	var/burn_mod = 1     // Burn damage reduction/amplification
+	var/tox_mod = 1      // Toxin damage reduction/amplification
+	var/oxy_mod = 1		 // Oxy damage reduction/amplification
+	var/clone_mod = 1	 // Clone damage reduction/amplification
+	var/brain_mod = 1    // Brain damage damage reduction/amplification
+	var/stun_mod = 1	 // If a species is more/less impacated by stuns/weakens/paralysis
 
 	var/total_health = 100
 	var/punchdamagelow = 0       //lowest possible punch damage
@@ -76,6 +84,8 @@
 
 	var/ventcrawler = 0 //Determines if the mob can go through the vents.
 	var/has_fine_manipulation = 1 // Can use small items.
+
+	var/mob/living/list/ignored_by = list() // list of mobs that will ignore this species
 
 	var/list/allowed_consumed_mobs = list() //If a species can consume mobs, put the type of mobs it can consume here.
 
@@ -90,6 +100,7 @@
 	var/blood_color = "#A10808" //Red.
 	var/flesh_color = "#FFC896" //Pink.
 	var/single_gib_type = /obj/effect/decal/cleanable/blood/gibs
+	var/remains_type = /obj/effect/decal/remains/human //What sort of remains is left behind when the species dusts
 	var/base_color      //Used when setting species.
 
 	//Used in icon caching.
@@ -99,6 +110,7 @@
 	var/show_ssd = 1
 	var/virus_immune
 	var/can_revive_by_healing				// Determines whether or not this species can be revived by simply healing them
+	var/has_gender = TRUE
 
 	//Death vars.
 	var/death_message = "seizes up and falls limp, their eyes dead and lifeless..."
@@ -117,6 +129,21 @@
 	var/scream_verb = "screams"
 	var/male_scream_sound = 'sound/goonstation/voice/male_scream.ogg'
 	var/female_scream_sound = 'sound/goonstation/voice/female_scream.ogg'
+	var/male_cough_sounds = list('sound/effects/mob_effects/m_cougha.ogg','sound/effects/mob_effects/m_coughb.ogg', 'sound/effects/mob_effects/m_coughc.ogg')
+	var/female_cough_sounds = list('sound/effects/mob_effects/f_cougha.ogg','sound/effects/mob_effects/f_coughb.ogg')
+	var/male_sneeze_sound = 'sound/effects/mob_effects/sneeze.ogg'
+	var/female_sneeze_sound = 'sound/effects/mob_effects/f_sneeze.ogg'
+
+	//Default hair/headacc style vars.
+	var/default_hair				//Default hair style for newly created humans unless otherwise set.
+	var/default_hair_colour
+	var/default_fhair				//Default facial hair style for newly created humans unless otherwise set.
+	var/default_fhair_colour
+	var/default_headacc				//Default head accessory style for newly created humans unless otherwise set.
+	var/default_headacc_colour
+
+	//Defining lists of icon skin tones for species that have them.
+	var/list/icon_skin_tones = list()
 
                               // Determines the organs that the species spawns with and
 	var/list/has_organ = list(    // which required-organ checks are conducted.
@@ -142,7 +169,6 @@
 		"l_foot" = list("path" = /obj/item/organ/external/foot),
 		"r_foot" = list("path" = /obj/item/organ/external/foot/right)
 		)
-	var/cyborg_type = "Cyborg"
 	var/list/proc/species_abilities = list()
 
 /datum/species/New()
@@ -157,7 +183,6 @@
 	return species_language.get_random_name(gender)
 
 /datum/species/proc/create_organs(var/mob/living/carbon/human/H) //Handles creation of mob organs.
-
 
 	for(var/obj/item/organ/internal/iorgan in H.internal_organs)
 		if(iorgan in H.internal_organs)
@@ -182,10 +207,8 @@
 
 	for(var/index in has_organ)
 		var/organ = has_organ[index]
-		H.internal_organs |= new organ(H)
-
-	for(var/obj/item/organ/internal/I in H.internal_organs)
-		I.insert(H)
+		// organ new code calls `insert` on its own
+		new organ(H)
 
 	for(var/name in H.organs_by_name)
 		H.organs |= H.organs_by_name[name]
@@ -296,7 +319,7 @@
 		if(!H.co2overloadtime) // If it's the first breath with too much CO2 in it, lets start a counter, then have them pass out after 12s or so.
 			H.co2overloadtime = world.time
 		else if(world.time - H.co2overloadtime > 120)
-			H.Paralyse(3)
+			H.Paralyse(5)
 			H.adjustOxyLoss(3) // Lets hurt em a little, let them know we mean business
 			if(world.time - H.co2overloadtime > 300) // They've been in here 30s now, lets start to kill them for their own good!
 				H.adjustOxyLoss(8)
@@ -305,6 +328,7 @@
 				H.emote("cough")
 	else
 		H.clear_alert("co2")
+		H.co2overloadtime = 0
 		if(atmos_requirements["min_co2"]) //species breathes this gas, so they got their air
 			H.failed_last_breath = 0
 			H.adjustOxyLoss(-5)
@@ -323,7 +347,8 @@
 			if(SA_pp > atmos_requirements["sa_para"]) // Enough to make us paralysed for a bit
 				H.Paralyse(3) // 3 gives them one second to wake up and run away a bit!
 				if(SA_pp > atmos_requirements["sa_sleep"]) // Enough to make us sleep as well
-					H.sleeping = max(H.sleeping + 2, 10)
+					// This value is large because breaths are taken only once every 4 life ticks.
+					H.AdjustSleeping(8, bound_lower = 0, bound_upper = 10)
 			else if(SA_pp > 0.01)	// There is sleeping gas in their lungs, but only a little, so give them a bit of a warning
 				if(prob(20))
 					spawn(0)
@@ -367,6 +392,9 @@
 	grant_abilities(C)
 	return
 
+/datum/species/proc/updatespeciescolor(var/mob/living/carbon/human/H) //Handles changing icobase for species that have multiple skin colors.
+	return
+
 /datum/species/proc/grant_abilities(var/mob/living/carbon/human/H)
 	for(var/proc/ability in species_abilities)
 		H.verbs += ability
@@ -379,7 +407,7 @@
 	return
 
 /datum/species/proc/remove_abilities(var/mob/living/carbon/human/H)
-	for (var/proc/ability in species_abilities)
+	for(var/proc/ability in species_abilities)
 		H.verbs -= ability
 	return
 
@@ -412,7 +440,10 @@
 /datum/species/proc/say_filter(mob/M, message, datum/language/speaking)
 	return message
 
-/datum/species/proc/equip(var/mob/living/carbon/human/H)
+/datum/species/proc/before_equip_job(datum/job/J, mob/living/carbon/human/H, visualsOnly = FALSE)
+	return
+
+/datum/species/proc/after_equip_job(datum/job/J, mob/living/carbon/human/H, visualsOnly = FALSE)
 	return
 
 /datum/species/proc/can_understand(var/mob/other)
@@ -456,118 +487,7 @@
 	return 0
 
 /datum/species/proc/handle_vision(mob/living/carbon/human/H)
-	if(H.stat == DEAD)
-		H.sight |= (SEE_TURFS|SEE_MOBS|SEE_OBJS)
-		H.see_in_dark = 8
-		if(!H.druggy)
-			H.see_invisible = SEE_INVISIBLE_LEVEL_TWO
-		return
-
-	H.sight &= ~(SEE_TURFS|SEE_MOBS|SEE_OBJS)
-
-	H.see_in_dark = darksight //set their variables to default, modify them later
-	H.see_invisible = SEE_INVISIBLE_LIVING
-
-	if(H.mind && H.mind.vampire)
-		if(H.mind.vampire.get_ability(/datum/vampire_passive/full))
-			H.sight |= SEE_TURFS|SEE_MOBS|SEE_OBJS
-			H.see_in_dark = 8
-			H.see_invisible = SEE_INVISIBLE_MINIMUM
-		else if(H.mind.vampire.get_ability(/datum/vampire_passive/vision))
-			H.sight |= SEE_MOBS
-
-
-	if(XRAY in H.mutations)
-		H.sight |= SEE_TURFS|SEE_MOBS|SEE_OBJS
-		H.see_in_dark = 8
-
-		H.see_invisible = SEE_INVISIBLE_MINIMUM
-
-
-	if(H.seer == 1)
-		var/obj/effect/rune/R = locate() in H.loc
-		if(R && R.word1 == cultwords["see"] && R.word2 == cultwords["hell"] && R.word3 == cultwords["join"])
-			H.see_invisible = SEE_INVISIBLE_OBSERVER
-		else
-			H.see_invisible = SEE_INVISIBLE_LIVING
-			H.seer = 0
-
-	//This checks how much the mob's eyewear impairs their vision
-	if(H.tinttotal >= TINT_IMPAIR)
-		if(tinted_weldhelh)
-			H.overlay_fullscreen("tint", /obj/screen/fullscreen/impaired, 2)
-		if(H.tinttotal >= TINT_BLIND)
-			H.eye_blind = max(H.eye_blind, 1)
-	else
-		H.clear_fullscreen("tint")
-
-	var/minimum_darkness_view = INFINITY
-	if(H.glasses)
-		if(istype(H.glasses, /obj/item/clothing/glasses))
-			var/obj/item/clothing/glasses/G = H.glasses
-			H.sight |= G.vision_flags
-
-			if(G.darkness_view)
-				H.see_in_dark = G.darkness_view
-				minimum_darkness_view = G.darkness_view
-
-			if(!G.see_darkness)
-				H.see_invisible = SEE_INVISIBLE_MINIMUM
-
-	if(H.head)
-		if(istype(H.head, /obj/item/clothing/head))
-			var/obj/item/clothing/head/hat = H.head
-			H.sight |= hat.vision_flags
-
-			if(hat.darkness_view && hat.darkness_view < minimum_darkness_view) // Pick the lowest of the two darkness_views between the glasses and helmet.
-				H.see_in_dark = hat.darkness_view
-
-			if(!hat.see_darkness)
-				H.see_invisible = SEE_INVISIBLE_MINIMUM
-
-			//switch(hat.HUDType)
-			//	if(SECHUD)
-			//		process_sec_hud(H,1)
-			//	if(MEDHUD)
-			//		process_med_hud(H,1)
-			//	if(ANTAGHUD)
-			//		process_antag_hud(H)
-
-	if(istype(H.back, /obj/item/weapon/rig)) ///ahhhg so snowflakey
-		var/obj/item/weapon/rig/rig = H.back
-		if(rig.visor)
-			if(!rig.helmet || (H.head && rig.helmet == H.head))
-				if(rig.visor && rig.visor.vision && rig.visor.active && rig.visor.vision.glasses)
-					var/obj/item/clothing/glasses/G = rig.visor.vision.glasses
-					if(istype(G))
-						H.see_in_dark = (G.darkness_view ? G.darkness_view : darksight) // Otherwise we keep our darkness view with togglable nightvision.
-						if(G.vision_flags)		// MESONS
-							H.sight |= G.vision_flags
-
-						if(!G.see_darkness)
-							H.see_invisible = SEE_INVISIBLE_MINIMUM
-
-						//switch(G.HUDType)
-						//	if(SECHUD)
-						//		process_sec_hud(H,1)
-						//	if(MEDHUD)
-						//		process_med_hud(H,1)
-						//	if(ANTAGHUD)
-						//		process_antag_hud(H)
-
-	if(H.vision_type)
-		H.see_in_dark = max(H.see_in_dark, H.vision_type.see_in_dark, darksight)
-		H.see_invisible = H.vision_type.see_invisible
-		if(H.vision_type.light_sensitive)
-			H.weakeyes = 1
-		H.sight |= H.vision_type.sight_flags
-
-	if(H.see_override)	//Override all
-		H.see_invisible = H.see_override
-
-	if(!H.client)
-		return 1
-
+	// Right now this just handles blind, blurry, and similar states
 	if(H.blinded || H.eye_blind)
 		H.overlay_fullscreen("blind", /obj/screen/fullscreen/blind)
 		H.throw_alert("blind", /obj/screen/alert/blind)
@@ -601,33 +521,36 @@
 		H.clear_alert("high")
 
 /datum/species/proc/handle_hud_icons(mob/living/carbon/human/H)
+	if(!H.client)
+		return
 	if(H.healths)
-		if(H.analgesic)
-			H.healths.icon_state = "health_health_numb"
+		if(H.stat == DEAD)
+			H.healths.icon_state = "health7"
 		else
-			if(H.stat == DEAD)
-				H.healths.icon_state = "health7"
-			else
-				switch(H.hal_screwyhud)
-					if(1)	H.healths.icon_state = "health6"
-					if(2)	H.healths.icon_state = "health7"
-					if(5)	H.healths.icon_state = "health0"
-					else
-						switch(100 - ((flags & NO_PAIN) ? 0 : H.traumatic_shock) - H.staminaloss)
-							if(100 to INFINITY)		H.healths.icon_state = "health0"
-							if(80 to 100)			H.healths.icon_state = "health1"
-							if(60 to 80)			H.healths.icon_state = "health2"
-							if(40 to 60)			H.healths.icon_state = "health3"
-							if(20 to 40)			H.healths.icon_state = "health4"
-							if(0 to 20)				H.healths.icon_state = "health5"
-							else					H.healths.icon_state = "health6"
+			switch(H.hal_screwyhud)
+				if(SCREWYHUD_CRIT)	H.healths.icon_state = "health6"
+				if(SCREWYHUD_DEAD)	H.healths.icon_state = "health7"
+				if(SCREWYHUD_HEALTHY)	H.healths.icon_state = "health0"
+				else
+					switch(100 - ((flags & NO_PAIN) ? 0 : H.traumatic_shock) - H.staminaloss)
+						if(100 to INFINITY)		H.healths.icon_state = "health0"
+						if(80 to 100)			H.healths.icon_state = "health1"
+						if(60 to 80)			H.healths.icon_state = "health2"
+						if(40 to 60)			H.healths.icon_state = "health3"
+						if(20 to 40)			H.healths.icon_state = "health4"
+						if(0 to 20)				H.healths.icon_state = "health5"
+						else					H.healths.icon_state = "health6"
 
 	if(H.healthdoll)
-		H.healthdoll.overlays.Cut()
 		if(H.stat == DEAD)
 			H.healthdoll.icon_state = "healthdoll_DEAD"
+			if(H.healthdoll.overlays.len)
+				H.healthdoll.overlays.Cut()
 		else
-			H.healthdoll.icon_state = "healthdoll_OVERLAY"
+			var/list/new_overlays = list()
+			var/list/cached_overlays = H.healthdoll.cached_healthdoll_overlays
+			// Use the dead health doll as the base, since we have proper "healthy" overlays now
+			H.healthdoll.icon_state = "healthdoll_DEAD"
 			for(var/obj/item/organ/external/O in H.organs)
 				var/damage = O.burn_dam + O.brute_dam
 				var/comparison = (O.max_damage/5)
@@ -642,14 +565,20 @@
 					icon_num = 4
 				if(damage > (comparison*4))
 					icon_num = 5
-				if(icon_num)
-					H.healthdoll.overlays += image('icons/mob/screen_gen.dmi',"[O.limb_name][icon_num]")
+				new_overlays += "[O.limb_name][icon_num]"
+			H.healthdoll.overlays += (new_overlays - cached_overlays)
+			H.healthdoll.overlays -= (cached_overlays - new_overlays)
+			H.healthdoll.cached_healthdoll_overlays = new_overlays
 
 	switch(H.nutrition)
 		if(NUTRITION_LEVEL_FULL to INFINITY)
 			H.throw_alert("nutrition", /obj/screen/alert/fat)
-		if(NUTRITION_LEVEL_HUNGRY to NUTRITION_LEVEL_FULL)
-			H.clear_alert("nutrition")
+		if(NUTRITION_LEVEL_WELL_FED to NUTRITION_LEVEL_FULL)
+			H.throw_alert("nutrition", /obj/screen/alert/full)
+		if(NUTRITION_LEVEL_FED to NUTRITION_LEVEL_WELL_FED)
+			H.throw_alert("nutrition", /obj/screen/alert/well_fed)
+		if(NUTRITION_LEVEL_HUNGRY to NUTRITION_LEVEL_FED)
+			H.throw_alert("nutrition", /obj/screen/alert/fed)
 		if(NUTRITION_LEVEL_STARVING to NUTRITION_LEVEL_HUNGRY)
 			H.throw_alert("nutrition", /obj/screen/alert/hungry)
 		else
@@ -665,3 +594,94 @@ It'll return null if the organ doesn't correspond, so include null checks when u
 	if(!(organ_slot in has_organ))
 		return null
 	return has_organ[organ_slot]
+
+/datum/species/proc/get_resultant_darksight(mob/living/carbon/human/H) //Returns default value of 2 if the mob doesn't have eyes, otherwise it grabs the eyes darksight.
+	var/resultant_darksight = 2
+	var/obj/item/organ/internal/eyes/eyes = H.get_int_organ(/obj/item/organ/internal/eyes)
+	if(eyes)
+		resultant_darksight = eyes.get_dark_view()
+	return resultant_darksight
+
+/datum/species/proc/update_sight(mob/living/carbon/human/H)
+	H.sight = initial(H.sight)
+	H.see_in_dark = get_resultant_darksight(H)
+	H.see_invisible = invis_sight
+
+	if(H.see_in_dark > 2) //Preliminary see_invisible handling as per set_species() in code\modules\mob\living\carbon\human\human.dm.
+		H.see_invisible = SEE_INVISIBLE_LEVEL_ONE
+	else
+		H.see_invisible = SEE_INVISIBLE_LIVING
+
+	if(H.client.eye != H)
+		var/atom/A = H.client.eye
+		if(A.update_remote_sight(H)) //returns 1 if we override all other sight updates.
+			return
+
+	if(H.mind && H.mind.vampire)
+		if(H.mind.vampire.get_ability(/datum/vampire_passive/full))
+			H.sight |= SEE_TURFS|SEE_MOBS|SEE_OBJS
+			H.see_in_dark = 8
+			H.see_invisible = SEE_INVISIBLE_MINIMUM
+		else if(H.mind.vampire.get_ability(/datum/vampire_passive/vision))
+			H.sight |= SEE_MOBS
+
+	for(var/obj/item/organ/internal/cyberimp/eyes/E in H.internal_organs)
+		H.sight |= E.vision_flags
+		if(E.dark_view)
+			H.see_in_dark = E.dark_view
+		if(E.see_invisible)
+			H.see_invisible = min(H.see_invisible, E.see_invisible)
+
+	var/lesser_darkview_bonus = INFINITY
+	// my glasses, I can't see without my glasses
+	if(H.glasses)
+		var/obj/item/clothing/glasses/G = H.glasses
+		H.sight |= G.vision_flags
+		lesser_darkview_bonus = G.darkness_view
+		if(G.invis_override)
+			H.see_invisible = G.invis_override
+		else
+			H.see_invisible = min(G.invis_view, H.see_invisible)
+
+	// better living through hat trading
+	if(H.head)
+		if(istype(H.head, /obj/item/clothing/head))
+			var/obj/item/clothing/head/hat = H.head
+			H.sight |= hat.vision_flags
+
+			if(hat.darkness_view) // Pick the lowest of the two darkness_views between the glasses and helmet.
+				lesser_darkview_bonus = min(hat.darkness_view,lesser_darkview_bonus)
+
+			if(hat.helmet_goggles_invis_view)
+				H.see_invisible = min(hat.helmet_goggles_invis_view, H.see_invisible)
+
+	if(istype(H.back, /obj/item/weapon/rig)) ///aghhh so snowflakey
+		var/obj/item/weapon/rig/rig = H.back
+		if(rig.visor)
+			if(!rig.helmet || (H.head && rig.helmet == H.head))
+				if(rig.visor && rig.visor.vision && rig.visor.active && rig.visor.vision.glasses)
+					var/obj/item/clothing/glasses/G = rig.visor.vision.glasses
+					if(istype(G))
+						H.see_in_dark = (G.darkness_view ? G.darkness_view : get_resultant_darksight(H)) // Otherwise we keep our darkness view with togglable nightvision.
+						if(G.vision_flags)		// MESONS
+							H.sight |= G.vision_flags
+
+						H.see_invisible = min(G.invis_view, H.see_invisible)
+
+	if(lesser_darkview_bonus != INFINITY)
+		H.see_in_dark = max(lesser_darkview_bonus, H.see_in_dark)
+
+	if(H.vision_type)
+		H.see_in_dark = max(H.see_in_dark, H.vision_type.see_in_dark, get_resultant_darksight(H))
+		H.see_invisible = H.vision_type.see_invisible
+		if(H.vision_type.light_sensitive)
+			H.weakeyes = 1
+		H.sight |= H.vision_type.sight_flags
+
+	if(XRAY in H.mutations)
+		H.sight |= (SEE_TURFS|SEE_MOBS|SEE_OBJS)
+		H.see_in_dark = max(H.see_in_dark, 8)
+		H.see_invisible = SEE_INVISIBLE_MINIMUM
+
+	if(H.see_override)	//Override all
+		H.see_invisible = H.see_override

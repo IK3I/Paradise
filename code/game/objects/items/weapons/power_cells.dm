@@ -18,6 +18,25 @@
 	var/minor_fault = 0 //If not 100% reliable, it will build up faults.
 	var/chargerate = 1000 //how much power is given every tick in a recharger
 	var/self_recharge = 0 //does it self recharge, over time, or not?
+	var/grown_battery = FALSE // If it's a grown that acts as a battery, add a wire overlay to it.
+
+/obj/item/weapon/stock_parts/cell/New()
+	..()
+	processing_objects.Add(src)
+	charge = maxcharge
+	updateicon()
+
+/obj/item/weapon/stock_parts/cell/Destroy()
+	processing_objects.Remove(src)
+	return ..()
+
+/obj/item/weapon/stock_parts/cell/on_varedit(modified_var)
+	if(modified_var == "self_recharge")
+		if(self_recharge)
+			processing_objects.Add(src)
+		else
+			processing_objects.Remove(src)
+	..()
 
 /obj/item/weapon/stock_parts/cell/suicide_act(mob/user)
 	to_chat(viewers(user), "<span class='suicide'>[user] is licking the electrodes of the [src.name]! It looks like \he's trying to commit suicide.</span>")
@@ -28,6 +47,17 @@
 		give(chargerate * 0.25)
 	else
 		return PROCESS_KILL
+
+/obj/item/weapon/stock_parts/cell/proc/updateicon()
+	overlays.Cut()
+	if(grown_battery)
+		overlays += image('icons/obj/power.dmi', "grown_wires")
+	if(charge < 0.01)
+		return
+	else if(charge/maxcharge >=0.995)
+		overlays += image('icons/obj/power.dmi', "cell-o2")
+	else
+		overlays += image('icons/obj/power.dmi', "cell-o1")
 
 /obj/item/weapon/stock_parts/cell/crap
 	name = "\improper Nanotrasen brand rechargable AA battery"
@@ -119,15 +149,15 @@
 /obj/item/weapon/stock_parts/cell/potato
 	name = "potato battery"
 	desc = "A rechargable starch based power cell."
-	origin_tech = "powerstorage=1"
-	icon = 'icons/obj/power.dmi' //'icons/obj/harvest.dmi'
-	icon_state = "potato_cell" //"potato_battery"
+	icon = 'icons/obj/hydroponics/harvest.dmi'
+	icon_state = "potato"
+	origin_tech = "powerstorage=1;biotech=1"
 	charge = 100
 	maxcharge = 3000
-	rating = 1
 	materials = list()
+	rating = 1
 	minor_fault = 1
-
+	grown_battery = TRUE //it has the overlays for wires
 
 /obj/item/weapon/stock_parts/cell/high/slime
 	name = "charged slime core"
@@ -138,13 +168,19 @@
 	materials = list()
 	self_recharge = 1 // Infused slime cores self-recharge, over time
 
+/obj/item/weapon/stock_parts/cell/pulse //200 pulse shots
+	name = "pulse rifle power cell"
+	maxcharge = 400000
+	rating = 3
+	chargerate = 1500
+
 /obj/item/weapon/stock_parts/cell/pulse/carbine
 	name = "pulse carbine power cell"
-	maxcharge = 4000
+	maxcharge = 40000
 
 /obj/item/weapon/stock_parts/cell/pulse/pistol
 	name = "pulse pistol power cell"
-	maxcharge = 1600
+	maxcharge = 16000
 
 /obj/item/weapon/stock_parts/cell/ninja
 	name = "spider-clan power cell"
@@ -168,9 +204,3 @@
 
 /obj/item/weapon/stock_parts/cell/emproof/corrupt()
 	return
-
-/obj/item/weapon/stock_parts/cell/temperaturegun
-	name = "temperature gun cell"
-	desc = "A specially designed power cell for heating and cooling projectiles"
-	icon_state = "icell"
-	maxcharge = 900

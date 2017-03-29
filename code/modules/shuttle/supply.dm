@@ -28,7 +28,7 @@
 	return 1
 
 /obj/docking_port/mobile/supply/canMove()
-	if(z == ZLEVEL_STATION)
+	if(is_station_level(z))
 		return forbidden_atoms_check(areaInstance)
 	return ..()
 
@@ -45,7 +45,7 @@
 	sell()
 
 /obj/docking_port/mobile/supply/proc/buy()
-	if(z != ZLEVEL_STATION)		//we only buy when we are -at- the station
+	if(!is_station_level(z))		//we only buy when we are -at- the station
 		return 1
 
 	if(!shuttle_master.shoppinglist.len)
@@ -93,7 +93,7 @@
 	shuttle_master.shoppinglist.Cut()
 
 /obj/docking_port/mobile/supply/proc/sell()
-	if(z != ZLEVEL_CENTCOMM)		//we only sell when we are -at- centcomm
+	if(z != level_name_to_num(CENTCOMM))		//we only sell when we are -at- centcomm
 		return 1
 
 	var/plasma_count = 0
@@ -199,20 +199,20 @@
 				// Sell exotic plants
 				if(istype(thing, /obj/item/seeds))
 					var/obj/item/seeds/S = thing
-					if(S.seed.get_trait(TRAIT_RARITY) == 0) // Mundane species
-						msg += "<span class='bad'>+0</span>: We don't need samples of mundane species \"[capitalize(S.seed.seed_name)]\".<br>"
+					if(S.rarity == 0) // Mundane species
+						msg += "<span class='bad'>+0</span>: We don't need samples of mundane species \"[capitalize(S.species)]\".<br>"
 					else if(shuttle_master.discoveredPlants[S.type]) // This species has already been sent to CentComm
-						var/potDiff = S.seed.get_trait(TRAIT_POTENCY) - shuttle_master.discoveredPlants[S.type] // Compare it to the previous best
+						var/potDiff = S.potency - shuttle_master.discoveredPlants[S.type] // Compare it to the previous best
 						if(potDiff > 0) // This sample is better
-							shuttle_master.discoveredPlants[S.type] = S.seed.get_trait(TRAIT_POTENCY)
-							msg += "<span class='good'>+[potDiff]</span>: New sample of \"[capitalize(S.seed.seed_name)]\" is superior. Good work.<br>"
+							shuttle_master.discoveredPlants[S.type] = S.potency
+							msg += "<span class='good'>+[potDiff]</span>: New sample of \"[capitalize(S.species)]\" is superior. Good work.<br>"
 							shuttle_master.points += potDiff
 						else // This sample is worthless
-							msg += "<span class='bad'>+0</span>: New sample of \"[capitalize(S.seed.seed_name)]\" is not more potent than existing sample ([shuttle_master.discoveredPlants[S.type]] potency).<br>"
+							msg += "<span class='bad'>+0</span>: New sample of \"[capitalize(S.species)]\" is not more potent than existing sample ([shuttle_master.discoveredPlants[S.type]] potency).<br>"
 					else // This is a new discovery!
-						shuttle_master.discoveredPlants[S.type] = S.seed.get_trait(TRAIT_POTENCY)
-						msg += "<span class='good'>+[S.seed.get_trait(TRAIT_RARITY)]</span>: New species discovered: \"[capitalize(S.seed.seed_name)]\". Excellent work.<br>"
-						shuttle_master.points += S.seed.get_trait(TRAIT_RARITY) // That's right, no bonus for potency.  Send a crappy sample first to "show improvement" later
+						shuttle_master.discoveredPlants[S.type] = S.potency
+						msg += "<span class='good'>[S.rarity]</span>: New species discovered: \"[capitalize(S.species)]\". Excellent work.<br>"
+						shuttle_master.points += S.rarity // That's right, no bonus for potency.  Send a crappy sample first to "show improvement" later
 		qdel(MA)
 		shuttle_master.sold_atoms += "."
 
@@ -246,7 +246,10 @@
 		/obj/machinery/teleport/station,
 		/obj/machinery/teleport/hub,
 		/obj/machinery/telepad,
-		/obj/machinery/clonepod
+		/obj/machinery/clonepod,
+		/obj/effect/hierophant,
+		/obj/item/device/warp_cube,
+		/obj/machinery/quantumpad
 	)
 	if(A)
 		if(is_type_in_list(A, blacklist))
@@ -292,7 +295,7 @@
 		return
 
 	var/obj/item/weapon/paper/reqform = new /obj/item/weapon/paper(_loc)
-	playsound(_loc, "sound/goonstation/machines/printer_thermal.ogg", 50, 1)
+	playsound(_loc, 'sound/goonstation/machines/printer_thermal.ogg', 50, 1)
 	reqform.name = "Requisition Form - [crates] '[object.name]' for [orderedby]"
 	reqform.info += "<h3>[station_name] Supply Requisition Form</h3><hr>"
 	reqform.info += "INDEX: #[shuttle_master.ordernum]<br>"
@@ -425,6 +428,12 @@
 	ui_interact(user)
 
 /obj/machinery/computer/ordercomp/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null)
+	ui = nanomanager.try_update_ui(user, src, ui_key, ui)
+	if(!ui)
+		ui = new(user, src, ui_key, "order_console.tmpl", name, ORDER_SCREEN_WIDTH, ORDER_SCREEN_HEIGHT)
+		ui.open()
+
+/obj/machinery/computer/ordercomp/ui_data(mob/user, ui_key = "main", datum/topic_state/state = default_state)
 	var/data[0]
 	data["last_viewed_group"] = last_viewed_group
 
@@ -437,7 +446,7 @@
 	var/packs_list[0]
 	for(var/set_name in shuttle_master.supply_packs)
 		var/datum/supply_packs/pack = shuttle_master.supply_packs[set_name]
-		if(!pack.contraband && !pack.hidden && pack.group == cat)
+		if(!pack.contraband && !pack.hidden && !pack.special && pack.group == cat)
 			// 0/1 after the pack name (set_name) is a boolean for ordering multiple crates
 			packs_list.Add(list(list("name" = pack.name, "amount" = pack.amount, "cost" = pack.cost, "command1" = list("doorder" = "[set_name]0"), "command2" = list("doorder" = "[set_name]1"), "command3" = list("contents" = set_name))))
 
@@ -474,17 +483,13 @@
 	data["at_station"] = shuttle_master.supply.getDockedId() == "supply_home"
 	data["timeleft"] = shuttle_master.supply.timeLeft(600)
 
-	ui = nanomanager.try_update_ui(user, src, ui_key, ui, data)
-	if(!ui)
-		ui = new(user, src, ui_key, "order_console.tmpl", name, ORDER_SCREEN_WIDTH, ORDER_SCREEN_HEIGHT)
-		ui.set_initial_data(data)
-		ui.open()
+	return data
 
 /obj/machinery/computer/ordercomp/Topic(href, href_list)
 	if(..())
 		return 1
 
-	if (href_list["doorder"])
+	if(href_list["doorder"])
 		if(world.time < reqtime)
 			visible_message("<b>[src]</b>'s monitor flashes, \"[world.time - reqtime] seconds remaining until another requisition form may be printed.\"")
 			nanomanager.update_uis(src)
@@ -528,7 +533,7 @@
 			if(i == 1)
 				O.generateRequisition(loc)
 
-	else if (href_list["rreq"])
+	else if(href_list["rreq"])
 		var/ordernum = text2num(href_list["rreq"])
 		var/obj/item/weapon/card/id/I = usr.get_id_card()
 		for(var/i=1, i<=shuttle_master.requestlist.len, i++)
@@ -537,11 +542,11 @@
 				shuttle_master.requestlist.Cut(i,i+1)
 				break
 
-	else if (href_list["last_viewed_group"])
+	else if(href_list["last_viewed_group"])
 		content_pack = null
 		last_viewed_group = text2num(href_list["last_viewed_group"])
 
-	else if (href_list["contents"])
+	else if(href_list["contents"])
 		var/topic = href_list["contents"]
 		if(topic == 1)
 			content_pack = null
@@ -572,7 +577,12 @@
 		return
 
 /obj/machinery/computer/supplycomp/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null)
-	// data to send to ui
+	ui = nanomanager.try_update_ui(user, src, ui_key, ui)
+	if(!ui)
+		ui = new(user, src, ui_key, "supply_console.tmpl", name, SUPPLY_SCREEN_WIDTH, SUPPLY_SCREEN_HEIGHT)
+		ui.open()
+
+/obj/machinery/computer/supplycomp/ui_data(mob/user, ui_key = "main", datum/topic_state/state = default_state)
 	var/data[0]
 	data["last_viewed_group"] = last_viewed_group
 
@@ -585,7 +595,7 @@
 	var/packs_list[0]
 	for(var/set_name in shuttle_master.supply_packs)
 		var/datum/supply_packs/pack = shuttle_master.supply_packs[set_name]
-		if((pack.hidden && src.hacked) || (pack.contraband && src.can_order_contraband) || (!pack.contraband && !pack.hidden))
+		if((pack.hidden && hacked) || (pack.contraband && can_order_contraband) || (pack.special && pack.special_enabled) || (!pack.contraband && !pack.hidden && !pack.special))
 			if(pack.group == cat)
 				// 0/1 after the pack name (set_name) is a boolean for ordering multiple crates
 				packs_list.Add(list(list("name" = pack.name, "amount" = pack.amount, "cost" = pack.cost, "command1" = list("doorder" = "[set_name]0"), "command2" = list("doorder" = "[set_name]1"), "command3" = list("contents" = set_name))))
@@ -622,18 +632,13 @@
 	data["at_station"] = shuttle_master.supply.getDockedId() == "supply_home"
 	data["timeleft"] = shuttle_master.supply.timeLeft(600)
 	data["can_launch"] = !shuttle_master.supply.canMove()
+	return data
 
-	ui = nanomanager.try_update_ui(user, src, ui_key, ui, data)
-	if(!ui)
-		ui = new(user, src, ui_key, "supply_console.tmpl", name, SUPPLY_SCREEN_WIDTH, SUPPLY_SCREEN_HEIGHT)
-		ui.set_initial_data(data)
-		ui.open()
-
-/obj/machinery/computer/supplycomp/proc/is_authorized(user)
+/obj/machinery/computer/supplycomp/proc/is_authorized(mob/user)
 	if(allowed(user))
 		return 1
 
-	if(isobserver(user) && check_rights(R_ADMIN, 0))
+	if(user.can_admin_interact())
 		return 1
 
 	return 0
@@ -646,7 +651,7 @@
 		return 1
 
 	if(!shuttle_master)
-		log_to_dd("## ERROR: The shuttle_master controller datum is missing somehow.")
+		log_runtime(EXCEPTION("The shuttle_master controller datum is missing somehow."), src)
 		return 1
 
 	if(href_list["send"])
@@ -657,8 +662,15 @@
 			investigate_log("[key_name(usr)] has sent the supply shuttle away. Remaining points: [shuttle_master.points]. Shuttle contents: [shuttle_master.sold_atoms]", "cargo")
 		else if(!shuttle_master.supply.request(shuttle_master.getDock("supply_home")))
 			post_signal("supply")
+			if(LAZYLEN(shuttle_master.shoppinglist) && prob(10))
+				var/datum/supply_order/O = new /datum/supply_order()
+				O.ordernum = shuttle_master.ordernum
+				O.object = shuttle_master.supply_packs[pick(shuttle_master.supply_packs)]
+				O.orderedby = random_name(pick(MALE,FEMALE), species = "Human")
+				shuttle_master.shoppinglist += O
+				investigate_log("Random [O.object] crate added to supply shuttle")
 
-	else if (href_list["doorder"])
+	else if(href_list["doorder"])
 		if(world.time < reqtime)
 			visible_message("<b>[src]</b>'s monitor flashes, \"[world.time - reqtime] seconds remaining until another requisition form may be printed.\"")
 			nanomanager.update_uis(src)
@@ -721,7 +733,7 @@
 					to_chat(usr, "<span class='warning'>There are insufficient supply points for this request.</span>")
 				break
 
-	else if (href_list["rreq"])
+	else if(href_list["rreq"])
 		var/ordernum = text2num(href_list["rreq"])
 		for(var/i=1, i<=shuttle_master.requestlist.len, i++)
 			var/datum/supply_order/SO = shuttle_master.requestlist[i]
@@ -729,11 +741,11 @@
 				shuttle_master.requestlist.Cut(i,i+1)
 				break
 
-	else if (href_list["last_viewed_group"])
+	else if(href_list["last_viewed_group"])
 		content_pack = null
 		last_viewed_group = text2num(href_list["last_viewed_group"])
 
-	else if (href_list["contents"])
+	else if(href_list["contents"])
 		var/topic = href_list["contents"]
 		if(topic == 1)
 			content_pack = null
@@ -784,16 +796,64 @@
 		/mob/living/silicon/robot/drone,
 		/mob/living/simple_animal/bot/mulebot
 		)
+	var/state = PLASTIC_FLAPS_NORMAL
+	var/can_deconstruct = TRUE
+
+/obj/structure/plasticflaps/examine(mob/user)
+	. = ..()
+	switch(state)
+		if(PLASTIC_FLAPS_NORMAL)
+			to_chat(user, "<span class='notice'>[src] are <b>screwed</b> to the floor.</span>")
+		if(PLASTIC_FLAPS_DETACHED)
+			to_chat(user, "<span class='notice'>[src] are no longer <i>screwed</i> to the floor, and the flaps can be <b>sliced</b> apart.</span>")
+
+/obj/structure/plasticflaps/attackby(obj/item/W, mob/user, params)
+	add_fingerprint(user)
+	if(isscrewdriver(W))
+		if(state == PLASTIC_FLAPS_NORMAL)
+			playsound(loc, W.usesound, 100, 1)
+			user.visible_message("<span class='warning'>[user] unscrews [src] from the floor.</span>", "<span class='notice'>You start to unscrew [src] from the floor...</span>", "You hear rustling noises.")
+			if(do_after(user, 180*W.toolspeed, target = src))
+				if(state != PLASTIC_FLAPS_NORMAL)
+					return
+				state = PLASTIC_FLAPS_DETACHED
+				anchored = FALSE
+				to_chat(user, "<span class='notice'>You unscrew [src] from the floor.</span>")
+		else if(state == PLASTIC_FLAPS_DETACHED)
+			playsound(loc, W.usesound, 100, 1)
+			user.visible_message("<span class='warning'>[user] screws [src] to the floor.</span>", "<span class='notice'>You start to screw [src] to the floor...</span>", "You hear rustling noises.")
+			if(do_after(user, 40*W.toolspeed, target = src))
+				if(state != PLASTIC_FLAPS_DETACHED)
+					return
+				state = PLASTIC_FLAPS_NORMAL
+				anchored = TRUE
+				to_chat(user, "<span class='notice'>You screw [src] from the floor.</span>")
+	else if(iswelder(W))
+		if(state == PLASTIC_FLAPS_DETACHED)
+			var/obj/item/weapon/weldingtool/WT = W
+			if(!WT.remove_fuel(0, user))
+				return
+			playsound(loc, WT.usesound, 100, 1)
+			user.visible_message("<span class='warning'>[user] slices apart [src].</span>", "<span class='notice'>You start to slice apart [src].</span>", "You hear welding.")
+			if(do_after(user, 120*WT.toolspeed, target = src))
+				if(state != PLASTIC_FLAPS_DETACHED)
+					return
+				to_chat(user, "<span class='notice'>You slice apart [src].</span>")
+				var/obj/item/stack/sheet/plastic/five/P = new(loc)
+				P.add_fingerprint(user)
+				qdel(src)
+	else
+		. = ..()
 
 /obj/structure/plasticflaps/CanPass(atom/A, turf/T)
 	if(istype(A) && A.checkpass(PASSGLASS))
 		return prob(60)
 
 	var/obj/structure/stool/bed/B = A
-	if (istype(A, /obj/structure/stool/bed) && B.buckled_mob)//if it's a bed/chair and someone is buckled, it will not pass
+	if(istype(A, /obj/structure/stool/bed) && B.buckled_mob)//if it's a bed/chair and someone is buckled, it will not pass
 		return 0
 
-	if (istype(A, /obj/structure/closet/cardboard))
+	if(istype(A, /obj/structure/closet/cardboard))
 		var/obj/structure/closet/cardboard/C = A
 		if(C.move_delay)
 			return 0
@@ -824,26 +884,31 @@
 				return 1
 
 		var/mob/living/M = caller
-		if(!M.ventcrawler && !M.small)
+		if(!M.ventcrawler && M.mob_size > MOB_SIZE_SMALL)
 			return 0
 	return 1
 
 /obj/structure/plasticflaps/ex_act(severity)
 	switch(severity)
-		if (1)
+		if(1)
 			qdel(src)
-		if (2)
-			if (prob(50))
+		if(2)
+			if(prob(50))
 				qdel(src)
-		if (3)
-			if (prob(5))
+		if(3)
+			if(prob(5))
 				qdel(src)
+
+/obj/structure/plasticflaps/proc/deconstruct(disassembled = TRUE)
+	if(can_deconstruct)
+		new /obj/item/stack/sheet/plastic/five(loc)
+	qdel(src)
 
 /obj/structure/plasticflaps/mining //A specific type for mining that doesn't allow airflow because of them damn crates
 	name = "\improper Airtight plastic flaps"
 	desc = "Heavy duty, airtight, plastic flaps."
 
-/obj/structure/plasticflaps/mining/New()
+/obj/structure/plasticflaps/mining/initialize()
 	air_update_turf(1)
 	..()
 

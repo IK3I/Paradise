@@ -2,32 +2,64 @@
 
 /obj/effect/glowshroom
 	name = "glowshroom"
+	desc = "Mycena Bregprox, a species of mushroom that glows in the dark."
 	anchored = 1
 	opacity = 0
 	density = 0
 	icon = 'icons/obj/lighting.dmi'
-	icon_state = "glowshroomf"
+	icon_state = "glowshroom" //replaced in New
 	layer = 2.1
 	var/endurance = 30
-	var/potency = 30
 	var/delay = 1200
 	var/floor = 0
-	var/yield = 3
-	var/spreadChance = 40
+	var/generation = 1
 	var/spreadIntoAdjacentChance = 60
-	var/evolveChance = 2
-	var/lastTick = 0
-	var/spreaded = 1
+	var/obj/item/seeds/myseed = /obj/item/seeds/glowshroom
 
-/obj/effect/glowshroom/single
-	spreadChance = 0
+/obj/effect/glowshroom/glowcap
+	name = "glowcap"
+	desc = "Mycena Ruthenia, a species of mushroom that, while it does glow in the dark, is not actually bioluminescent."
+	icon_state = "glowcap"
+	myseed = /obj/item/seeds/glowshroom/glowcap
 
-/obj/effect/glowshroom/New()
+/obj/effect/glowshroom/shadowshroom
+	name = "shadowshroom"
+	desc = "Mycena Umbra, a species of mushroom that emits shadow instead of light."
+	icon_state = "shadowshroom"
+	myseed = /obj/item/seeds/glowshroom/shadowshroom
 
+/obj/effect/glowshroom/single/Spread()
+	return
+
+/obj/effect/glowshroom/examine(mob/user)
+	. = ..()
+	to_chat(user, "This is a [generation]\th generation [name]!")
+
+/obj/effect/glowshroom/Destroy()
+	if(myseed)
+		qdel(myseed)
+		myseed = null
+	return ..()
+
+/obj/effect/glowshroom/New(loc, obj/item/seeds/newseed, mutate_stats)
 	..()
-
-	dir = CalcDir()
-
+	if(newseed)
+		myseed = newseed.Copy()
+		myseed.forceMove(src)
+	else
+		myseed = new myseed(src)
+	if(mutate_stats) //baby mushrooms have different stats :3
+		myseed.adjust_potency(rand(-3,6))
+		myseed.adjust_yield(rand(-1,2))
+		myseed.adjust_production(rand(-3,6))
+		myseed.adjust_endurance(rand(-3,6))
+	delay = delay - myseed.production * 100 //So the delay goes DOWN with better stats instead of up. :I
+	endurance = myseed.endurance
+	if(myseed.get_gene(/datum/plant_gene/trait/glow))
+		var/datum/plant_gene/trait/glow/G = myseed.get_gene(/datum/plant_gene/trait/glow)
+		set_light(G.glow_range(myseed), G.glow_power(myseed), G.glow_color)
+	setDir(CalcDir())
+	var/base_icon_state = initial(icon_state)
 	if(!floor)
 		switch(dir) //offset to make it be on the wall rather than on the floor
 			if(NORTH)
@@ -38,70 +70,58 @@
 				pixel_x = 32
 			if(WEST)
 				pixel_x = -32
-		icon_state = "glowshroom[rand(1,3)]"
+		icon_state = "[base_icon_state][rand(1,3)]"
 	else //if on the floor, glowshroom on-floor sprite
-		icon_state = "glowshroomf"
+		icon_state = "[base_icon_state]f"
 
-	processing_objects += src
+	addtimer(src, "Spread", delay, FALSE)
 
+/obj/effect/glowshroom/proc/Spread()
+	var/turf/ownturf = get_turf(src)
+	var/shrooms_planted = 0
+	for(var/i in 1 to myseed.yield)
+		if(prob(1/(generation * generation) * 100))//This formula gives you diminishing returns based on generation. 100% with 1st gen, decreasing to 25%, 11%, 6, 4, 2...
+			var/list/possibleLocs = list()
+			var/spreadsIntoAdjacent = FALSE
 
-	set_light(round(potency/10))
-	lastTick = world.timeofday
+			if(prob(spreadIntoAdjacentChance))
+				spreadsIntoAdjacent = TRUE
 
-
-/obj/effect/glowshroom/Destroy()
-	processing_objects -= src
-	return ..()
-
-/obj/effect/glowshroom/process()
-	if(!spreaded)
-		return
-
-	if(((world.timeofday - lastTick) > delay) || ((world.timeofday - lastTick) < 0))
-		lastTick = world.timeofday
-		spreaded = 0
-
-		for(var/i=1,i<=yield,i++)
-			if(prob(spreadChance))
-				var/list/possibleLocs = list()
-				var/spreadsIntoAdjacent = 0
-
-				if(prob(spreadIntoAdjacentChance))
-					spreadsIntoAdjacent = 1
-
-				for(var/turf/simulated/floor/plating/airless/asteroid/earth in view(3,src))
-					if(spreadsIntoAdjacent || !locate(/obj/effect/glowshroom) in view(1,earth))
-						possibleLocs += earth
-
-				if(!possibleLocs.len)
-					break
-
-				var/turf/newLoc = pick(possibleLocs)
-
-				var/shroomCount = 0 //hacky
-				var/placeCount = 1
-				for(var/obj/effect/glowshroom/shroom in newLoc)
-					shroomCount++
-				for(var/wallDir in cardinal)
-					var/turf/isWall = get_step(newLoc,wallDir)
-					if(isWall.density)
-						placeCount++
-				if(shroomCount >= placeCount)
+			for(var/turf/simulated/floor/earth in view(3,src))
+				if(!ownturf.CanAtmosPass(earth))
 					continue
+				if(spreadsIntoAdjacent || !locate(/obj/effect/glowshroom) in view(1,earth))
+					possibleLocs += earth
+				CHECK_TICK
 
-				var/obj/effect/glowshroom/child = new /obj/effect/glowshroom(newLoc)
-				child.potency = potency
-				child.yield = yield
-				child.delay = delay
-				child.endurance = endurance
+			if(!possibleLocs.len)
+				break
 
-				spreaded++
+			var/turf/newLoc = pick(possibleLocs)
 
-		if(prob(evolveChance)) //very low chance to evolve on its own
-			potency += rand(4,6)
+			var/shroomCount = 0 //hacky
+			var/placeCount = 1
+			for(var/obj/effect/glowshroom/shroom in newLoc)
+				shroomCount++
+			for(var/wallDir in cardinal)
+				var/turf/isWall = get_step(newLoc,wallDir)
+				if(isWall.density)
+					placeCount++
+			if(shroomCount >= placeCount)
+				continue
+
+			var/obj/effect/glowshroom/child = new type(newLoc, myseed, TRUE)
+			child.generation = generation + 1
+			shrooms_planted++
+
+			CHECK_TICK
+		else
+			shrooms_planted++ //if we failed due to generation, don't try to plant one later
+	if(shrooms_planted < myseed.yield) //if we didn't get all possible shrooms planted, try again later
+		myseed.yield -= shrooms_planted
+		addtimer(src, "Spread", delay, FALSE)
 
 /obj/effect/glowshroom/proc/CalcDir(turf/location = loc)
-	//set background = 1
 	var/direction = 16
 
 	for(var/wallDir in cardinal)
@@ -133,28 +153,22 @@
 	floor = 1
 	return 1
 
-/obj/effect/glowshroom/attackby(obj/item/weapon/W as obj, mob/user as mob, params)
+/obj/effect/glowshroom/attackby(obj/item/I, mob/user)
 	..()
-
-	endurance -= W.force
-
-	CheckEndurance()
+	if(I.damtype != STAMINA)
+		endurance -= I.force
+		CheckEndurance()
 
 /obj/effect/glowshroom/ex_act(severity)
 	switch(severity)
-		if(1.0)
+		if(1)
 			qdel(src)
-			return
-		if(2.0)
-			if (prob(50))
+		if(2)
+			if(prob(50))
 				qdel(src)
-				return
-		if(3.0)
-			if (prob(5))
+		if(3)
+			if(prob(5))
 				qdel(src)
-				return
-		else
-	return
 
 /obj/effect/glowshroom/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	if(exposed_temperature > 300)

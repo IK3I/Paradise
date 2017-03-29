@@ -8,7 +8,7 @@
 	flags = CONDUCT
 	slot_flags = SLOT_BELT
 	materials = list(MAT_METAL=50, MAT_GLASS=20)
-	action_button_name = "Flashlight"
+	actions_types = list(/datum/action/item_action/toggle_light)
 	var/on = 0
 	var/brightness_on = 4 //luminosity when on
 
@@ -35,7 +35,11 @@
 
 		return 0
 	on = !on
+	playsound(user, 'sound/weapons/empty.ogg', 100, 1)
 	update_brightness(user)
+	for(var/X in actions)
+		var/datum/action/A = X
+		A.UpdateButtonIcon()
 	return 1
 
 
@@ -51,8 +55,8 @@
 			return
 
 		var/mob/living/carbon/human/H = M	//mob has protective eyewear
-		if(istype(M, /mob/living/carbon/human) && ((H.head && H.head.flags & HEADCOVERSEYES) || (H.wear_mask && H.wear_mask.flags & MASKCOVERSEYES) || (H.glasses && H.glasses.flags & GLASSESCOVERSEYES)))
-			to_chat(user, "<span class='notice'>You're going to need to remove that [(H.head && H.head.flags & HEADCOVERSEYES) ? "helmet" : (H.wear_mask && H.wear_mask.flags & MASKCOVERSEYES) ? "mask": "glasses"] first.</span>")
+		if(istype(H) && ((H.head && H.head.flags_cover & HEADCOVERSEYES) || (H.wear_mask && H.wear_mask.flags_cover & MASKCOVERSEYES) || (H.glasses && H.glasses.flags_cover & GLASSESCOVERSEYES)))
+			to_chat(user, "<span class='notice'>You're going to need to remove that [(H.head && H.head.flags_cover & HEADCOVERSEYES) ? "helmet" : (H.wear_mask && H.wear_mask.flags_cover & MASKCOVERSEYES) ? "mask" : "glasses"] first.</span>")
 			return
 
 		if(M == user)	//they're using it on themselves
@@ -67,12 +71,13 @@
 			user.visible_message("<span class='notice'>[user] directs [src] to [M]'s eyes.</span>", \
 								 "<span class='notice'>You direct [src] to [M]'s eyes.</span>")
 
-			if(istype(M, /mob/living/carbon/human))	//robots and aliens are unaffected
-				if(M.stat == DEAD || M.sdisabilities & BLIND)	//mob is dead or fully blind
-					to_chat(user, "<span class='notice'>[M] pupils does not react to the light!</span>")
-				else if(XRAY in M.mutations)	//mob has X-RAY vision
-					to_chat(user, "<span class='notice'>[M] pupils give an eerie glow!</span>")
-				else	//they're okay!
+			if(istype(H)) //robots and aliens are unaffected
+				var/obj/item/organ/internal/eyes/eyes = H.get_int_organ(/obj/item/organ/internal/eyes)
+				if(M.stat == DEAD || !eyes || M.disabilities & BLIND)	//mob is dead or fully blind
+					to_chat(user, "<span class='notice'>[M]'s pupils are unresponsive to the light!</span>")
+				else if((XRAY in M.mutations) || (eyes.colourblind_darkview && eyes.colourblind_darkview == eyes.get_dark_view())) //The mob's either got the X-RAY vision or has a tapetum lucidum (extreme nightvision, i.e. Vulp/Tajara with COLOURBLIND & their monkey forms).
+					to_chat(user, "<span class='notice'>[M]'s pupils glow eerily!</span>")
+				else //they're okay!
 					if(M.flash_eyes(visual = 1))
 						to_chat(user, "<span class='notice'>[M]'s pupils narrow.</span>")
 	else
@@ -148,7 +153,7 @@ obj/item/device/flashlight/lamp/bananalamp
 /obj/item/device/flashlight/flare
 	name = "flare"
 	desc = "A red Nanotrasen issued flare. There are instructions on the side, it reads 'pull cord, make light'."
-	w_class = 2.0
+	w_class = 2
 	brightness_on = 8 // Made it brighter (from 7 to 8).
 	light_color = "#ff0000" // changed colour to a more brighter red.
 	icon_state = "flare"
@@ -267,14 +272,14 @@ obj/item/device/flashlight/lamp/bananalamp
 
 /obj/item/device/flashlight/emp/afterattack(atom/A as mob|obj, mob/user, proximity)
 	if(!proximity) return
-	if (emp_cur_charges > 0)
+	if(emp_cur_charges > 0)
 		emp_cur_charges -= 1
 		A.visible_message("<span class='danger'>[user] blinks \the [src] at \the [A].", \
 											"<span class='userdanger'>[user] blinks \the [src] at \the [A].")
 		if(ismob(A))
 			var/mob/M = A
-			add_logs(M, user, "attacked", object="EMP-light")
-		to_chat(user, "\The [src] now has [emp_cur_charges] charge\s.")
+			add_logs(user, M, "attacked", object="EMP-light")
+		to_chat(user, "[src] now has [emp_cur_charges] charge\s.")
 		A.emp_act(1)
 	else
 		to_chat(user, "<span class='warning'>\The [src] needs time to recharge!</span>")

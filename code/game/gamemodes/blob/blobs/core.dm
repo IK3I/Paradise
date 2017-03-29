@@ -14,6 +14,7 @@
 /obj/effect/blob/core/New(loc, var/h = 200, var/client/new_overmind = null, var/new_rate = 2, offspring)
 	blob_cores += src
 	processing_objects.Add(src)
+	poi_list |= src
 	adjustcolors(color) //so it atleast appears
 	if(!overmind)
 		create_overmind(new_overmind)
@@ -41,6 +42,7 @@
 		overmind.blob_core = null
 	overmind = null
 	processing_objects.Remove(src)
+	poi_list.Remove(src)
 	return ..()
 
 /obj/effect/blob/core/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
@@ -91,7 +93,7 @@
 /obj/effect/blob/core/proc/create_overmind(var/client/new_overmind, var/override_delay)
 	if(overmind_get_delay > world.time && !override_delay)
 		return
-	
+
 	overmind_get_delay = world.time + 3000 // 5 minutes
 
 	if(overmind)
@@ -99,7 +101,7 @@
 
 	var/mob/C = null
 	var/list/candidates = list()
-	
+
 	spawn()
 		if(!new_overmind)
 			candidates = pollCandidates("Do you want to play as a blob?", ROLE_BLOB, 1)
@@ -115,7 +117,7 @@
 			src.overmind = B
 			color = overmind.blob_reagent_datum.color
 			if(B.mind && !B.mind.special_role)
-				B.mind.special_role = "Blob Overmind"
+				B.mind.special_role = SPECIAL_ROLE_BLOB_OVERMIND
 			spawn(0)
 				if(is_offspring)
 					B.verbs -= /mob/camera/blob/verb/split_consciousness

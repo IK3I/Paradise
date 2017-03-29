@@ -13,10 +13,10 @@
 		if(1.0)
 			qdel(src)
 		if(2.0)
-			if (prob(50))
+			if(prob(50))
 				qdel(src)
 		if(3.0)
-			if (prob(5))
+			if(prob(5))
 				qdel(src)
 	return
 
@@ -33,7 +33,7 @@
 
 		if(WT.remove_fuel(0, user))
 			damage = 15
-			playsound(loc, 'sound/items/Welder.ogg', 100, 1)
+			playsound(loc, WT.usesound, 100, 1)
 
 	health -= damage
 	healthcheck()
@@ -59,8 +59,8 @@
 	if(prob(50))
 		icon_state = "stickyweb2"
 
-/obj/effect/spider/stickyweb/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
-	if(air_group || (height==0)) return 1
+/obj/effect/spider/stickyweb/CanPass(atom/movable/mover, turf/target, height=0)
+	if(height==0) return 1
 	if(istype(mover, /mob/living/simple_animal/hostile/poison/giant_spider))
 		return 1
 	else if(istype(mover, /mob/living))
@@ -201,7 +201,7 @@
 			if(player_spiders && !selecting_player)
 				selecting_player = 1
 				spawn()
-					var/list/candidates = pollCandidates("Do you want to play as a spider?", ROLE_ALIEN, 1)
+					var/list/candidates = pollCandidates("Do you want to play as a spider?", ROLE_GSPIDER, 1)
 
 					if(candidates.len)
 						var/mob/C = pick(candidates)
@@ -215,6 +215,7 @@
 	desc = "Green squishy mess."
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "greenshatter"
+	anchored = 1
 
 /obj/effect/spider/cocoon
 	name = "cocoon"

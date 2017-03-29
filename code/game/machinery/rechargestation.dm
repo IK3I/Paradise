@@ -54,7 +54,57 @@
 
 	if(src.occupant)
 		process_occupant()
+
+	for(var/mob/M as mob in src) // makes sure that simple mobs don't get stuck inside a sleeper when they resist out of occupant's grasp
+		if(M == occupant)
+			continue
+		else
+			M.forceMove(src.loc)
 	return 1
+
+/obj/machinery/recharge_station/ex_act(severity)
+	switch(severity)
+		if(1.0)
+			for(var/atom/movable/A as mob|obj in src)
+				A.forceMove(src.loc)
+				A.ex_act(severity)
+			qdel(src)
+			return
+		if(2.0)
+			if(prob(50))
+				for(var/atom/movable/A as mob|obj in src)
+					A.forceMove(src.loc)
+					A.ex_act(severity)
+				qdel(src)
+				return
+		if(3.0)
+			if(prob(25))
+				for(var/atom/movable/A as mob|obj in src)
+					A.forceMove(src.loc)
+					A.ex_act(severity)
+				qdel(src)
+				return
+
+/obj/machinery/recharge_station/blob_act()
+	if(prob(50))
+		var/atom/movable/A = occupant
+		go_out()
+		A.blob_act()
+		qdel(src)
+
+/obj/machinery/recharge_station/narsie_act()
+	go_out()
+	new /obj/effect/gibspawner/generic(get_turf(loc)) //I REPLACE YOUR TECHNOLOGY WITH FLESH!
+	qdel(src)
+
+
+/obj/machinery/recharge_station/attack_animal(var/mob/living/simple_animal/M)//Stop putting hostile mobs in things guise
+	if(M.environment_smash)
+		M.do_attack_animation(src)
+		visible_message("<span class='danger'>[M.name] smashes [src] apart!</span>")
+		go_out()
+		qdel(src)
+	return
 
 /obj/machinery/recharge_station/Bumped(var/mob/AM)
 	move_inside(AM)
@@ -87,7 +137,7 @@
 		icon_state = "borgcharger0"
 
 /obj/machinery/recharge_station/attackby(obj/item/P as obj, mob/user as mob, params)
-	if (istype(P, /obj/item/weapon/screwdriver))
+	if(istype(P, /obj/item/weapon/screwdriver))
 		if(src.occupant)
 			to_chat(user, "<span class='notice'>The maintenance panel is locked.</span>")
 			return
@@ -101,7 +151,7 @@
 
 /obj/machinery/recharge_station/proc/process_occupant()
 	if(src.occupant)
-		if (istype(occupant, /mob/living/silicon/robot))
+		if(istype(occupant, /mob/living/silicon/robot))
 			var/mob/living/silicon/robot/R = occupant
 			restock_modules()
 			if(repairs)
@@ -122,17 +172,12 @@
 					H.updatehealth()
 
 /obj/machinery/recharge_station/proc/go_out()
-	if(!( src.occupant ))
+	if(!occupant)
 		return
-	//for(var/obj/O in src)
-	//	O.loc = src.loc
-	if (src.occupant.client)
-		src.occupant.client.eye = src.occupant.client.mob
-		src.occupant.client.perspective = MOB_PERSPECTIVE
-	src.occupant.loc = src.loc
-	src.occupant = null
+	occupant.forceMove(loc)
+	occupant = null
 	build_icon()
-	src.use_power = 1
+	use_power = 1
 	return
 
 /obj/machinery/recharge_station/proc/restock_modules()
@@ -147,8 +192,8 @@
 					// Engineering
 					if(istype(O,/obj/item/stack/sheet))
 						var/obj/item/stack/sheet/S = O
-						if(S.amount < 50)
-							S.amount += 1 * coeff
+						if(S.amount < S.max_amount)
+							S.amount += round(min(1 * coeff, S.max_amount - S.amount))
 					// Security
 					if(istype(O,/obj/item/device/flash))
 						var/obj/item/device/flash/F = O
@@ -159,7 +204,8 @@
 					if(istype(O,/obj/item/weapon/gun/energy/disabler/cyborg))
 						var/obj/item/weapon/gun/energy/disabler/cyborg/D = O
 						if(D.power_supply.charge < D.power_supply.maxcharge)
-							D.power_supply.give(D.charge_cost)
+							var/obj/item/ammo_casing/energy/E = D.ammo_type[D.select]
+							D.power_supply.give(E.e_cost)
 							D.update_icon()
 						else
 							D.charge_tick = 0
@@ -171,17 +217,15 @@
 					if(istype(O,/obj/item/weapon/reagent_containers/food/condiment/enzyme))
 						if(O.reagents.get_reagent_amount("enzyme") < 50)
 							O.reagents.add_reagent("enzyme", 2 * coeff)
-					//Medical
-					if(istype(O,/obj/item/weapon/reagent_containers/glass/bottle/robot))
-						var/obj/item/weapon/reagent_containers/glass/bottle/robot/B = O
-						if(B.reagent && (B.reagents.get_reagent_amount(B.reagent) < B.volume))
-							B.reagents.add_reagent(B.reagent, 2 * coeff)
 					//Janitor
 					if(istype(O, /obj/item/device/lightreplacer))
 						var/obj/item/device/lightreplacer/LR = O
 						var/i = 1
 						for(1, i <= coeff, i++)
 							LR.Charge(occupant)
+					if(istype(O,/obj/item/weapon/mop/advanced))
+						if(O.reagents.get_reagent_amount("water") < 40)
+							O.reagents.add_reagent("water", 0.5 * coeff)
 				if(R)
 					if(R.module)
 						R.module.respawn_consumable(R)
@@ -201,7 +245,7 @@
 /obj/machinery/recharge_station/verb/move_eject()
 	set category = "Object"
 	set src in oview(1)
-	if (usr.stat != 0)
+	if(usr.stat != 0)
 		return
 	src.go_out()
 	add_fingerprint(usr)
@@ -210,17 +254,17 @@
 /obj/machinery/recharge_station/verb/move_inside(var/mob/user = usr)
 	set category = "Object"
 	set src in oview(1)
-	if(!user)
+	if(!user || !usr)
 		return
 
-	if (usr.stat != CONSCIOUS)
+	if(usr.stat != CONSCIOUS)
 		return
 
 	if(get_dist(src, user) > 2 || get_dist(usr, user) > 1)
 		to_chat(usr, "They are too far away to put inside")
 		return
 
-	if (panel_open)
+	if(panel_open)
 		to_chat(usr, "<span class='warning'>Close the maintenance panel first.</span>")
 		return
 
@@ -257,9 +301,6 @@
 		return
 
 	user.stop_pulling()
-	if(user && user.client)
-		user.client.perspective = EYE_PERSPECTIVE
-		user.client.eye = src
 	user.forceMove(src)
 	occupant = user
 

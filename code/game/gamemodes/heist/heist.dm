@@ -52,7 +52,8 @@ var/global/list/obj/cortical_stacks = list() //Stacks for 'leave nobody behind' 
 
 	for(var/datum/mind/raider in raiders)
 		raider.assigned_role = "MODE"
-		raider.special_role = "Vox Raider"
+		raider.special_role = SPECIAL_ROLE_RAIDER
+	..()
 	return 1
 
 /datum/game_mode/heist/pre_setup()
@@ -84,7 +85,6 @@ var/global/list/obj/cortical_stacks = list() //Stacks for 'leave nobody behind' 
 
 /datum/game_mode/proc/create_vox(var/datum/mind/newraider)
 
-
 	var/sounds = rand(2,8)
 	var/i = 0
 	var/newname = ""
@@ -94,19 +94,32 @@ var/global/list/obj/cortical_stacks = list() //Stacks for 'leave nobody behind' 
 		newname += pick(list("ti","hi","ki","ya","ta","ha","ka","ya","chi","cha","kah"))
 
 	var/mob/living/carbon/human/vox = newraider.current
+	var/obj/item/organ/external/head/head_organ = vox.get_organ("head")
 
 	vox.real_name = capitalize(newname)
+	vox.dna.real_name = vox.real_name
 	vox.name = vox.real_name
 	newraider.name = vox.name
 	vox.age = rand(12,20)
 	vox.set_species("Vox")
+	vox.s_tone = rand(1, 6)
 	vox.languages = list() // Removing language from chargen.
 	vox.flavor_text = ""
 	vox.add_language("Vox-pidgin")
 	vox.add_language("Galactic Common")
 	vox.add_language("Tradeband")
-	vox.h_style = "Short Vox Quills"
-	vox.f_style = "Shaved"
+	head_organ.h_style = "Short Vox Quills"
+	head_organ.f_style = "Shaved"
+	vox.change_hair_color(97, 79, 25) //Same as the species default colour.
+	vox.change_eye_color(rand(1, 255), rand(1, 255), rand(1, 255))
+	vox.underwear = "Nude"
+	vox.undershirt = "Nude"
+	vox.socks = "Nude"
+
+	// Do the initial caching of the player's body icons.
+	vox.force_update_limbs()
+	vox.update_dna()
+	vox.update_eyes()
 
 	for(var/obj/item/organ/external/limb in vox.organs)
 		limb.status &= ~(ORGAN_DESTROYED | ORGAN_ROBOT)
@@ -164,7 +177,7 @@ var/global/list/obj/cortical_stacks = list() //Stacks for 'leave nobody behind' 
 	return objs
 
 /datum/game_mode/proc/greet_vox(var/datum/mind/raider)
-	to_chat(raider.current, "\blue <B>You are a Vox Raider, fresh from the Shoal!</b>")
+	to_chat(raider.current, "<span class='boldnotice'>You are a Vox Raider, fresh from the Shoal!</span>")
 	to_chat(raider.current, "\blue The Vox are a race of cunning, sharp-eyed nomadic raiders and traders endemic to the frontier and much of the unexplored galaxy. You and the crew have come to the [station_name()] for plunder, trade or both.")
 	to_chat(raider.current, "\blue Vox are cowardly and will flee from larger groups, but corner one or find them en masse and they are vicious.")
 	to_chat(raider.current, "\blue Use :V to voxtalk, :H to talk on your encrypted channel, and don't forget to turn on your nitrogen internals!")
@@ -241,7 +254,7 @@ var/global/list/obj/cortical_stacks = list() //Stacks for 'leave nobody behind' 
 datum/game_mode/proc/auto_declare_completion_heist()
 	if(raiders.len)
 		var/check_return = 0
-		if(ticker && istype(ticker.mode,/datum/game_mode/heist))
+		if(GAMEMODE_IS_HEIST)
 			check_return = 1
 		var/text = "<FONT size = 2><B>The Vox raiders were:</B></FONT>"
 
@@ -286,7 +299,7 @@ datum/game_mode/proc/auto_declare_completion_heist()
 	overlays += icon('icons/obj/computer.dmi', "syndie")
 
 /obj/vox/win_button/attack_hand(mob/user)
-	if(!istype(ticker.mode, /datum/game_mode/heist) || (world.time < 10 MINUTES)) //has to be heist, and at least ten minutes into the round
+	if(!GAMEMODE_IS_HEIST || (world.time < 10 MINUTES)) //has to be heist, and at least ten minutes into the round
 		to_chat(user, "<span class='warning'>\The [src] does not appear to have a connection.</span>")
 		return 0
 

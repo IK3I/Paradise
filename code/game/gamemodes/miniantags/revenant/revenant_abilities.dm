@@ -110,7 +110,8 @@
 	message = "<span class='revennotice'>You toggle your night vision.</span>"
 	action_icon_state = "r_nightvision"
 	action_background_icon_state = "bg_revenant"
-
+	non_night_vision = INVISIBILITY_REVENANT
+	night_vision = SEE_INVISIBLE_OBSERVER_NOLIGHTING
 
 //Transmit: the revemant's only direct way to communicate. Sends a single message silently to a single mob
 /obj/effect/proc_holder/spell/targeted/revenant_transmit
@@ -127,12 +128,12 @@
 /obj/effect/proc_holder/spell/targeted/revenant_transmit/cast(list/targets, mob/living/simple_animal/revenant/user = usr)
 	for(var/mob/living/M in targets)
 		spawn(0)
-			var/msg = stripped_input(usr, "What do you wish to tell [M]?", null, "")
+			var/msg = stripped_input(user, "What do you wish to tell [M]?", null, "")
 			if(!msg)
 				charge_counter = charge_max
 				return
 			log_say("RevenantTransmit: [key_name(user)]->[key_name(M)] : [msg]")
-			to_chat(usr, "<span class='revennotice'><b>You transmit to [M]:</b> [msg]</span>")
+			to_chat(user, "<span class='revennotice'><b>You transmit to [M]:</b> [msg]</span>")
 			to_chat(M, "<span class='revennotice'><b>An alien voice resonates from all around...</b></span><i> [msg]</I>")
 
 
@@ -183,7 +184,8 @@
 	name = "[initial(name)] ([cast_amount]E)"
 	user.reveal(reveal)
 	user.stun(stun)
-	user.update_action_buttons()
+	if(action)
+		action.UpdateButtonIcon()
 	return 1
 
 //Overload Light: Breaks a light that's online and sends out lightning bolts to all nearby people.
@@ -238,7 +240,8 @@
 	action_icon_state = "defile"
 	var/stamdamage= 25
 	var/toxdamage = 5
-	var/confusion = 50
+	var/confusion = 20
+	var/maxconfusion = 30
 
 /obj/effect/proc_holder/spell/aoe_turf/revenant/defile/cast(list/targets, mob/living/simple_animal/revenant/user = usr)
 	if(attempt_cast(user))
@@ -251,7 +254,7 @@
 					to_chat(human, "<span class='warning'>You suddenly feel [pick("sick and tired", "tired and confused", "nauseated", "dizzy")].</span>")
 					human.adjustStaminaLoss(stamdamage)
 					human.adjustToxLoss(toxdamage)
-					human.confused += confusion
+					human.AdjustConfused(confusion, bound_lower = 0, bound_upper = maxconfusion)
 					new/obj/effect/overlay/temp/revenant(human.loc)
 				if(!istype(T, /turf/simulated/shuttle) && !istype(T, /turf/simulated/wall/rust) && !istype(T, /turf/simulated/wall/r_wall) && istype(T, /turf/simulated/wall) && prob(15))
 					new/obj/effect/overlay/temp/revenant(T)
@@ -281,7 +284,7 @@
 	name = "Malfunction"
 	desc = "Corrupts and damages nearby machines and mechanical objects."
 	charge_max = 200
-	range = 4
+	range = 2
 	cast_amount = 45
 	unlock_amount = 150
 	action_icon_state = "malfunction"

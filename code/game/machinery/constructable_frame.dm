@@ -66,31 +66,33 @@
 			if(istype(P, /obj/item/stack/cable_coil))
 				var/obj/item/stack/cable_coil/C = P
 				if(C.amount >= 5)
-					playsound(src.loc, 'sound/items/Deconstruct.ogg', 50, 1)
+					playsound(src.loc, C.usesound, 50, 1)
 					to_chat(user, "<span class='notice'>You start to add cables to the frame.</span>")
-					if(do_after(user, 20, target = src))
-						if(C.amount >= 5 && state == 1)
-							C.use(5)
+					if(do_after(user, 20 * C.toolspeed, target = src))
+						if(state == 1 && C.amount >= 5 && C.use(5))
 							to_chat(user, "<span class='notice'>You add cables to the frame.</span>")
 							state = 2
 							icon_state = "box_1"
+						else
+							to_chat(user, "<span class='warning'>At some point during construction you lost some cable. Make sure you have five lengths before trying again.</span>")
+							return
 				else
-					to_chat(user, "<span class='warning'>You need five length of cable to wire the frame.</span>")
+					to_chat(user, "<span class='warning'>You need five lengths of cable to wire the frame.</span>")
 					return
 			else if(istype(P, /obj/item/stack/sheet/glass))
 				var/obj/item/stack/sheet/glass/G = P
-				if(G.amount<5)
-					to_chat(user, "\red You do not have enough glass to build a display case.")
+				if(G.amount < 5)
+					to_chat(user, "<span class='warning'>You do not have enough glass to build a display case.</span>")
 					return
 				G.use(5)
-				to_chat(user, "\blue You add the glass to the frame.")
-				playsound(get_turf(src), 'sound/items/Deconstruct.ogg', 50, 1)
+				to_chat(user, "<span class='notice'>You add the glass to the frame.</span>")
+				playsound(get_turf(src), G.usesound, 50, 1)
 				new /obj/structure/displaycase_frame(src.loc)
 				qdel(src)
 				return
 
 			if(istype(P, /obj/item/weapon/wrench))
-				playsound(src.loc, 'sound/items/Ratchet.ogg', 75, 1)
+				playsound(src.loc, P.usesound, 75, 1)
 				to_chat(user, "<span class='notice'>You dismantle the frame.</span>")
 				new /obj/item/stack/sheet/metal(src.loc, 5)
 				qdel(src)
@@ -98,7 +100,7 @@
 			if(istype(P, /obj/item/weapon/circuitboard))
 				var/obj/item/weapon/circuitboard/B = P
 				if(B.board_type == "machine")
-					playsound(src.loc, 'sound/items/Deconstruct.ogg', 50, 1)
+					playsound(src.loc, B.usesound, 50, 1)
 					to_chat(user, "<span class='notice'>You add the circuit board to the frame.</span>")
 					circuit = P
 					user.drop_item()
@@ -112,7 +114,7 @@
 				else
 					to_chat(user, "<span class='danger'>This frame does not accept circuit boards of this type!</span>")
 			if(istype(P, /obj/item/weapon/wirecutters))
-				playsound(src.loc, 'sound/items/Wirecutter.ogg', 50, 1)
+				playsound(src.loc, P.usesound, 50, 1)
 				to_chat(user, "<span class='notice'>You remove the cables.</span>")
 				state = 1
 				icon_state = "box_0"
@@ -121,7 +123,7 @@
 
 		if(3)
 			if(istype(P, /obj/item/weapon/crowbar))
-				playsound(src.loc, 'sound/items/Crowbar.ogg', 50, 1)
+				playsound(src.loc, P.usesound, 50, 1)
 				state = 2
 				circuit.loc = src.loc
 				circuit = null
@@ -143,7 +145,7 @@
 						component_check = 0
 						break
 				if(component_check)
-					playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
+					playsound(src.loc, P.usesound, 50, 1)
 					var/obj/machinery/new_machine = new src.circuit.build_path(src.loc)
 					new_machine.construction()
 					for(var/obj/O in new_machine.component_parts)
@@ -188,20 +190,20 @@
 				for(var/I in req_components)
 					if(istype(P, I) && (req_components[I] > 0) && (!(P.flags & NODROP) || istype(P, /obj/item/stack)))
 						success=1
-						playsound(src.loc, 'sound/items/Deconstruct.ogg', 50, 1)
-						if(istype(P, /obj/item/stack/cable_coil))
-							var/obj/item/stack/cable_coil/CP = P
-							var/camt = min(CP.amount, req_components[I])
-							var/obj/item/stack/cable_coil/CC = new /obj/item/stack/cable_coil(src)
-							CC.amount = camt
-							CC.update_icon()
-							CP.use(camt)
-							components += CC
+						playsound(src.loc, P.usesound, 50, 1)
+						if(istype(P, /obj/item/stack))
+							var/obj/item/stack/S = P
+							var/camt = min(S.amount, req_components[I])
+							var/obj/item/stack/NS = new P.type(src)
+							NS.amount = camt
+							NS.update_icon()
+							S.use(camt)
+							components += NS
 							req_components[I] -= camt
 							update_req_desc()
 							break
 						user.drop_item()
-						P.loc = src
+						P.forceMove(src)
 						components += P
 						req_components[I]--
 						update_req_desc()
@@ -228,6 +230,7 @@ to destroy them and players will be able to make replacements.
 	var/list/names_paths = list("Booze-O-Mat" = /obj/machinery/vending/boozeomat,
 							"Solar's Best Hot Drinks" = /obj/machinery/vending/coffee,
 							"Getmore Chocolate Corp" = /obj/machinery/vending/snack,
+							"Mr. Chang" = /obj/machinery/vending/chinese,
 							"Robust Softdrinks" = /obj/machinery/vending/cola,
 							"ShadyCigs Deluxe" = /obj/machinery/vending/cigarette,
 							"AutoDrobe" = /obj/machinery/vending/autodrobe,
@@ -332,14 +335,37 @@ to destroy them and players will be able to make replacements.
 							/obj/item/stack/cable_coil = 1,
 							/obj/item/weapon/stock_parts/console_screen = 1)
 
+/obj/item/weapon/circuitboard/plantgenes
+	name = "Plant DNA Manipulator (Machine Board)"
+	build_path = /obj/machinery/plantgenes
+	board_type = "machine"
+	origin_tech = "programming=3;biotech=3"
+	frame_desc = "Requires 1 Manipulator, 1 Micro Laser, 1 Console Screen, and 1 Scanning Module."
+	req_components = list(
+							/obj/item/weapon/stock_parts/manipulator = 1,
+							/obj/item/weapon/stock_parts/micro_laser = 1,
+							/obj/item/weapon/stock_parts/console_screen = 1,
+							/obj/item/weapon/stock_parts/scanning_module = 1)
+
+/obj/item/weapon/circuitboard/seed_extractor
+	name = "circuit board (Seed Extractor)"
+	build_path = /obj/machinery/seed_extractor
+	board_type = "machine"
+	origin_tech = "programming=1"
+	frame_desc = "Requires 1 Matter Bin and 1 Manipulator."
+	req_components = list(
+							/obj/item/weapon/stock_parts/matter_bin = 1,
+							/obj/item/weapon/stock_parts/manipulator = 1)
+
 /obj/item/weapon/circuitboard/hydroponics
 	name = "circuit board (Hydroponics Tray)"
-	build_path = /obj/machinery/portable_atmospherics/hydroponics
+	build_path = /obj/machinery/hydroponics/constructable
 	board_type = "machine"
 	origin_tech = "programming=1;biotech=1"
-	frame_desc = "Requires 2 Matter Bins and 1 Console Screen."
+	frame_desc = "Requires 2 Matter Bins, 1 Manipulator, and 1 Console Screen."
 	req_components = list(
 							/obj/item/weapon/stock_parts/matter_bin = 2,
+							/obj/item/weapon/stock_parts/manipulator = 1,
 							/obj/item/weapon/stock_parts/console_screen = 1)
 
 /obj/item/weapon/circuitboard/microwave
@@ -385,6 +411,16 @@ to destroy them and players will be able to make replacements.
 							/obj/item/weapon/stock_parts/manipulator = 1,
 							/obj/item/stack/cable_coil = 5,
 							/obj/item/weapon/stock_parts/console_screen = 1)
+
+/obj/item/weapon/circuitboard/deepfryer
+	name = "circuit board (Deep Fryer)"
+	build_path = /obj/machinery/cooker/deepfryer
+	board_type = "machine"
+	origin_tech = "programming=2"
+	frame_desc = "Requires 2 Micro Lasers and 5 pieces of cable."
+	req_components = list(
+							/obj/item/weapon/stock_parts/micro_laser = 2,
+							/obj/item/stack/cable_coil = 5)
 
 /obj/item/weapon/circuitboard/gibber
 	name = "circuit board (Gibber)"
@@ -698,6 +734,17 @@ obj/item/weapon/circuitboard/rdserver
 							/obj/item/weapon/stock_parts/capacitor = 2,
 							/obj/item/weapon/stock_parts/console_screen = 1)
 
+/obj/item/weapon/circuitboard/teleporter_perma
+	name = "circuit board (Permanent Teleporter)"
+	build_path = /obj/machinery/teleport/perma
+	board_type = "machine"
+	origin_tech = "programming=3;engineering=5;bluespace=5;materials=4"
+	frame_desc = "Requires 3 Bluespace Crystals and 1 Matter Bin."
+	req_components = list(
+							/obj/item/weapon/ore/bluespace_crystal = 3,
+							/obj/item/weapon/stock_parts/matter_bin = 1)
+	var/target
+
 /obj/item/weapon/circuitboard/telesci_pad
 	name = "Circuit board (Telepad)"
 	build_path = /obj/machinery/telepad
@@ -710,6 +757,17 @@ obj/item/weapon/circuitboard/rdserver
 							/obj/item/stack/cable_coil = 1,
 							/obj/item/weapon/stock_parts/console_screen = 1)
 
+/obj/item/weapon/circuitboard/quantumpad
+	name = "circuit board (Quantum Pad)"
+	build_path = /obj/machinery/quantumpad
+	board_type = "machine"
+	origin_tech = "programming=3;engineering=3;plasmatech=3;bluespace=4"
+	frame_desc = "Requires 1 Bluespace Crystal, 1 Capacitor, 1 piece of cable and 1 Manipulator."
+	req_components = list(
+							/obj/item/weapon/ore/bluespace_crystal = 1,
+							/obj/item/weapon/stock_parts/capacitor = 1,
+							/obj/item/weapon/stock_parts/manipulator = 1,
+							/obj/item/stack/cable_coil = 1)
 
 /obj/item/weapon/circuitboard/sleeper
 	name = "circuit board (Sleeper)"
@@ -723,15 +781,14 @@ obj/item/weapon/circuitboard/rdserver
 							/obj/item/stack/cable_coil = 1,
 							/obj/item/weapon/stock_parts/console_screen = 2)
 
-/obj/item/weapon/circuitboard/sleep_console
-	name = "circuit board (Sleeper Console)"
-	build_path = /obj/machinery/sleep_console
-	board_type = "machine"
-	origin_tech = "programming=3;biotech=2;engineering=3;materials=3"
-	frame_desc = "Requires 2 pieces of cable and 2 Console Screens."
-	req_components = list(
-							/obj/item/stack/cable_coil = 2,
-							/obj/item/weapon/stock_parts/console_screen = 2)
+/obj/item/weapon/circuitboard/sleeper/syndicate
+	name = "circuit board (Sleeper Syndicate)"
+	build_path = /obj/machinery/sleeper/syndie
+
+/obj/item/weapon/circuitboard/sleeper/survival
+	name = "circuit board (Sleeper Survival Pod)"
+	build_path = /obj/machinery/sleeper/survival_pod
+
 
 /obj/item/weapon/circuitboard/bodyscanner
 	name = "circuit board (Body Scanner)"
@@ -902,26 +959,6 @@ obj/item/weapon/circuitboard/rdserver
 							/obj/item/weapon/stock_parts/manipulator = 1,
 							/obj/item/weapon/stock_parts/console_screen = 1,
 							/obj/item/stack/cable_coil = 1)
-
-/obj/item/weapon/circuitboard/botany_extractor
-	name = "circuit board (Lysis-Isolation Centrifuge)"
-	build_path = /obj/machinery/botany/extractor
-	board_type = "machine"
-	origin_tech = "biotech=3;programming=3"
-	req_components = list(
-							/obj/item/weapon/stock_parts/matter_bin = 1,
-							/obj/item/weapon/stock_parts/scanning_module = 1,
-							/obj/item/weapon/stock_parts/console_screen = 1)
-
-/obj/item/weapon/circuitboard/botany_editor
-	name = "circuit board (Bioballistic Delivery System)"
-	build_path = /obj/machinery/botany/editor
-	board_type = "machine"
-	origin_tech = "biotech=3;programming=3"
-	req_components = list(
-							/obj/item/weapon/stock_parts/matter_bin = 1,
-							/obj/item/weapon/stock_parts/manipulator = 1,
-							/obj/item/weapon/stock_parts/console_screen = 1)
 
 /obj/item/weapon/circuitboard/gameboard
 	name = "circuit board (Virtual Gameboard)"

@@ -57,6 +57,12 @@
 	typepath = /obj/item/weapon/storage/box/dice
 	cost = 200
 
+/datum/storeitem/nanomob_booster
+	name = "Nano-Mob Hunter Trading Card Booster Pack"
+	desc = "Contains 6 random Nano-Mob Hunter Trading Cards. May contain a holographic card!"
+	typepath = /obj/item/weapon/storage/box/nanomob_booster_pack
+	cost = 250
+
 /datum/storeitem/crayons
 	name = "Crayons"
 	desc = "Let security know how they're doing by scrawling lovenotes all over their hallways."
@@ -169,6 +175,12 @@
 	name = "Vulpkanin flag"
 	desc = "A flag proudly proclaiming the superior heritage of Vulpkanin."
 	typepath = /obj/item/flag/species/vulp
+	cost = 1000
+
+/datum/storeitem/flag_drask
+	name = "Drask flag"
+	desc = "A flag proudly proclaiming the superior heritage of Drask."
+	typepath = /obj/item/flag/species/drask
 	cost = 1000
 
 /datum/storeitem/flag_ian

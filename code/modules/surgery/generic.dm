@@ -7,16 +7,14 @@
 	can_infect = 1
 
 /datum/surgery_step/generic/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
-	if (target_zone == "eyes")	//there are specific steps for eye surgery
-		return 0
-	if (!hasorgans(target))
+	if(!hasorgans(target))
 		return 0
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	if (affected == null)
+	if(affected == null)
 		return 0
-	if (affected.status & ORGAN_DESTROYED)
+	if(affected.status & ORGAN_DESTROYED)
 		return 0
-	if (affected.status & ORGAN_ROBOT)
+	if(affected.status & ORGAN_ROBOT)
 		return 0
 	return 1
 
@@ -25,10 +23,6 @@
 	name = "make incision"
 
 	allowed_tools = list(
-	/obj/item/weapon/scalpel/laser3 = 115, \
-	/obj/item/weapon/scalpel/laser2 = 110, \
-	/obj/item/weapon/scalpel/laser1 = 105, \
-	/obj/item/weapon/scalpel/manager = 120, \
 	/obj/item/weapon/scalpel = 100,		\
 	/obj/item/weapon/kitchen/knife = 75,	\
 	/obj/item/weapon/shard = 50, 		\
@@ -40,10 +34,6 @@
 	)
 
 	time = 16
-
-/datum/surgery_step/generic/cut_open/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	return ..() && affected.open == 0 && target_zone != "mouth"
 
 /datum/surgery_step/generic/cut_open/begin_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
 		var/obj/item/organ/external/affected = target.get_organ(target_zone)
@@ -71,21 +61,13 @@
 	name = "clamp bleeders"
 
 	allowed_tools = list(
-	/obj/item/weapon/scalpel/laser3 = 115, \
-	/obj/item/weapon/scalpel/laser2 = 110, \
-	/obj/item/weapon/scalpel/laser1 = 105, \
-	/obj/item/weapon/scalpel/manager = 120, \
+	/obj/item/weapon/scalpel/laser = 100, \
 	/obj/item/weapon/hemostat = 100,	\
 	/obj/item/stack/cable_coil = 75, 	\
 	/obj/item/device/assembly/mousetrap = 20
 	)
 
 	time = 24
-
-
-/datum/surgery_step/generic/clamp_bleeders/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
-		var/obj/item/organ/external/affected = target.get_organ(target_zone)
-		return ..() && affected.open && (affected.status & ORGAN_BLEEDING)
 
 
 /datum/surgery_step/generic/clamp_bleeders/begin_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
@@ -114,7 +96,7 @@
 	name = "retract skin"
 
 	allowed_tools = list(
-	/obj/item/weapon/scalpel/manager = 120, \
+	/obj/item/weapon/scalpel/laser/manager = 100, \
 	/obj/item/weapon/retractor = 100, 	\
 	/obj/item/weapon/crowbar = 75,	\
 	/obj/item/weapon/kitchen/utensil/fork = 50
@@ -122,18 +104,14 @@
 
 	time = 24
 
-/datum/surgery_step/generic/retract_skin/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
-		var/obj/item/organ/external/affected = target.get_organ(target_zone)
-		return ..() && affected.open == 1 && !(affected.status & ORGAN_BLEEDING)
-
 /datum/surgery_step/generic/retract_skin/begin_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	var/msg = "[user] starts to pry open the incision on [target]'s [affected.name] with \the [tool]."
 	var/self_msg = "You start to pry open the incision on [target]'s [affected.name] with \the [tool]."
-	if (target_zone == "chest")
+	if(target_zone == "chest")
 		msg = "[user] starts to separate the ribcage and rearrange the organs in [target]'s torso with \the [tool]."
 		self_msg = "You start to separate the ribcage and rearrange the organs in [target]'s torso with \the [tool]."
-	if (target_zone == "groin")
+	if(target_zone == "groin")
 		msg = "[user] starts to pry open the incision and rearrange the organs in [target]'s lower abdomen with \the [tool]."
 		self_msg = "You start to pry open the incision and rearrange the organs in [target]'s lower abdomen with \the [tool]."
 	user.visible_message(msg, self_msg)
@@ -144,10 +122,10 @@
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	var/msg = "<span class='notice'> [user] keeps the incision open on [target]'s [affected.name] with \the [tool].</span>"
 	var/self_msg = "<span class='notice'> You keep the incision open on [target]'s [affected.name] with \the [tool].</span>"
-	if (target_zone == "chest")
+	if(target_zone == "chest")
 		msg = "<span class='notice'> [user] keeps the ribcage open on [target]'s torso with \the [tool].</span>"
 		self_msg = "<span class='notice'> You keep the ribcage open on [target]'s torso with \the [tool]."
-	if (target_zone == "groin")
+	if(target_zone == "groin")
 		msg = "<span class='notice'> [user] keeps the incision open on [target]'s lower abdomen with \the [tool].</span>"
 		self_msg = "<span class='notice'> You keep the incision open on [target]'s lower abdomen with \the [tool].</span>"
 	user.visible_message(msg, self_msg)
@@ -158,10 +136,10 @@
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	var/msg = "<span class='warning'> [user]'s hand slips, tearing the edges of incision on [target]'s [affected.name] with \the [tool]!</span>"
 	var/self_msg = "<span class='warning'> Your hand slips, tearing the edges of incision on [target]'s [affected.name] with \the [tool]!</span>"
-	if (target_zone == "chest")
+	if(target_zone == "chest")
 		msg = "<span class='warning'> [user]'s hand slips, damaging several organs [target]'s torso with \the [tool]!</span>"
 		self_msg = "<span class='warning'> Your hand slips, damaging several organs [target]'s torso with \the [tool]!</span>"
-	if (target_zone == "groin")
+	if(target_zone == "groin")
 		msg = "<span class='warning'> [user]'s hand slips, damaging several organs [target]'s lower abdomen with \the [tool]</span>"
 		self_msg = "<span class='warning'> Your hand slips, damaging several organs [target]'s lower abdomen with \the [tool]!</span>"
 	user.visible_message(msg, self_msg)
@@ -173,9 +151,7 @@
 	name = "cauterize incision"
 
 	allowed_tools = list(
-	/obj/item/weapon/scalpel/laser3 = 115, \
-	/obj/item/weapon/scalpel/laser2 = 110, \
-	/obj/item/weapon/scalpel/laser1 = 105, \
+	/obj/item/weapon/scalpel/laser = 100, \
 	/obj/item/weapon/cautery = 100,			\
 	/obj/item/clothing/mask/cigarette = 75,	\
 	/obj/item/weapon/lighter = 50,			\
@@ -183,10 +159,6 @@
 	)
 
 	time = 24
-
-/datum/surgery_step/generic/cauterize/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	return ..() && affected.open && target_zone != "mouth"
 
 /datum/surgery_step/generic/cauterize/begin_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
@@ -214,7 +186,7 @@
 //drill bone
 /datum/surgery_step/generic/drill
 	name = "drill bone"
-	allowed_tools = list(/obj/item/weapon/surgicaldrill = 100, /obj/item/weapon/pickaxe/drill = 60, /obj/item/mecha_parts/mecha_equipment/tool/drill = 60, /obj/item/weapon/screwdriver = 20)
+	allowed_tools = list(/obj/item/weapon/surgicaldrill = 100, /obj/item/weapon/pickaxe/drill = 60, /obj/item/mecha_parts/mecha_equipment/drill = 60, /obj/item/weapon/screwdriver = 20)
 	time = 30
 
 /datum/surgery_step/generic/drill/begin_step(mob/living/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery)
@@ -239,14 +211,14 @@
 	time = 100
 
 /datum/surgery_step/generic/amputate/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)
-	if (target_zone == "eyes")	//there are specific steps for eye surgery
+	if(target_zone == "eyes")	//there are specific steps for eye surgery
 		return 0
-	if (!hasorgans(target))
+	if(!hasorgans(target))
 		return 0
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	if (affected == null)
+	if(affected == null)
 		return 0
-	if (affected.status & ORGAN_DESTROYED)
+	if(affected.status & ORGAN_DESTROYED)
 		return 0
 	return !affected.cannot_amputate
 
@@ -262,9 +234,11 @@
 	user.visible_message("<span class='notice'> [user] amputates [target]'s [affected.name] at the [affected.amputation_point] with \the [tool].</span>", \
 	"<span class='notice'> You amputate [target]'s [affected.name] with \the [tool].</span>")
 
-	add_logs(target,user ,"surgically removed [affected.name] from", addition="INTENT: [uppertext(user.a_intent)]")//log it
+	add_logs(user, target, "surgically removed [affected.name] from", addition="INTENT: [uppertext(user.a_intent)]")//log it
 
-	affected.droplimb(1,DROPLIMB_EDGE)
+	var/atom/movable/thing = affected.droplimb(1,DROPLIMB_EDGE)
+	if(istype(thing,/obj/item))
+		user.put_in_hands(thing)
 	return 1
 
 /datum/surgery_step/generic/amputate/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool,datum/surgery/surgery)

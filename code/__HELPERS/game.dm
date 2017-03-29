@@ -1,15 +1,8 @@
-//supposedly the fastest way to do this according to https://gist.github.com/Giacom/be635398926bb463b42a
-#define RANGE_TURFS(RADIUS, CENTER) \
-  block( \
-    locate(max(CENTER.x-(RADIUS),1),          max(CENTER.y-(RADIUS),1),          CENTER.z), \
-    locate(min(CENTER.x+(RADIUS),world.maxx), min(CENTER.y+(RADIUS),world.maxy), CENTER.z) \
-  )
-
 /proc/dopage(src,target)
 	var/href_list
 	var/href
-	href_list = params2list("src=\ref[src]&[target]=1")
-	href = "src=\ref[src];[target]=1"
+	href_list = params2list("src=[src:UID()]&[target]=1")
+	href = "src=[src:UID()];[target]=1"
 	src:temphtml = null
 	src:Topic(href, href_list)
 	return null
@@ -17,7 +10,7 @@
 /proc/get_area_master(const/O)
 	var/area/A = get_area(O)
 
-	if (isarea(A))
+	if(isarea(A))
 		return A
 
 /proc/get_area(atom/A)
@@ -46,17 +39,9 @@
 		areas |= T.loc
 	return areas
 
-
-/proc/in_range(source, user)
-	if(get_dist(source, user) <= 1)
-		return 1
-
-	return 0 //not in range and not telekinetic
-
 // Like view but bypasses luminosity check
 
 /proc/hear(var/range, var/atom/source)
-
 	var/lum = source.luminosity
 	source.luminosity = 6
 
@@ -64,11 +49,6 @@
 	source.luminosity = lum
 
 	return heard
-
-//We used to use linear regression to approximate the answer, but Mloc realized this was actually faster.
-//And lo and behold, it is, and it's more accurate to boot.
-/proc/cheap_hypotenuse(Ax,Ay,Bx,By)
-	return sqrt(abs(Ax - Bx)**2 + abs(Ay - By)**2) //A squared + B squared = C squared
 
 /proc/circlerange(center=usr,radius=3)
 
@@ -171,7 +151,7 @@
 // The old system would loop through lists for a total of 5000 per function call, in an empty server.
 // This new system will loop at around 1000 in an empty server.
 
-/proc/get_mobs_in_view(var/R, var/atom/source)
+/proc/get_mobs_in_view(var/R, var/atom/source, var/include_clientless = FALSE)
 	// Returns a list of mobs in range of R from source. Used in radio and say code.
 
 	var/turf/T = get_turf(source)
@@ -185,7 +165,7 @@
 	for(var/atom/A in range)
 		if(ismob(A))
 			var/mob/M = A
-			if(M.client)
+			if(M.client || include_clientless)
 				hear += M
 			//log_to_dd("Start = [M] - [get_turf(M)] - ([M.x], [M.y], [M.z])")
 		else if(istype(A, /obj/item/device/radio))
@@ -213,7 +193,7 @@
 				var/datum/robot_component/CO = borg.get_component("radio")
 				if(!CO)
 					continue //No radio component (Shouldn't happen)
-				if(!borg.is_component_functioning("radio") || !borg.use_power(CO.energy_consumption))
+				if(!borg.is_component_functioning("radio"))
 					continue //No power.
 
 			var/turf/speaker = get_turf(R)
@@ -229,57 +209,48 @@
 			var/turf/ear = get_turf(M)
 			if(ear)
 				// Ghostship is magic: Ghosts can hear radio chatter from anywhere
-				if(speaker_coverage[ear] || (istype(M, /mob/dead/observer) && (M.client) && (M.client.prefs.toggles & CHAT_GHOSTRADIO)))
+				if(speaker_coverage[ear] || (istype(M, /mob/dead/observer) && M.get_preference(CHAT_GHOSTRADIO)))
 					. |= M		// Since we're already looping through mobs, why bother using |= ? This only slows things down.
 	return .
 
-
-#define SIGN(X) ((X<0)?-1:1)
-
-proc
-	inLineOfSight(X1,Y1,X2,Y2,Z=1,PX1=16.5,PY1=16.5,PX2=16.5,PY2=16.5)
-		var/turf/T
-		if(X1==X2)
-			if(Y1==Y2)
-				return 1 //Light cannot be blocked on same tile
-			else
-				var/s = SIGN(Y2-Y1)
-				Y1+=s
-				while(Y1!=Y2)
-					T=locate(X1,Y1,Z)
-					if(T.opacity)
-						return 0
-					Y1+=s
+/proc/inLineOfSight(X1,Y1,X2,Y2,Z=1,PX1=16.5,PY1=16.5,PX2=16.5,PY2=16.5)
+	var/turf/T
+	if(X1==X2)
+		if(Y1==Y2)
+			return 1 //Light cannot be blocked on same tile
 		else
-			var/m=(32*(Y2-Y1)+(PY2-PY1))/(32*(X2-X1)+(PX2-PX1))
-			var/b=(Y1+PY1/32-0.015625)-m*(X1+PX1/32-0.015625) //In tiles
-			var/signX = SIGN(X2-X1)
-			var/signY = SIGN(Y2-Y1)
-			if(X1<X2)
-				b+=m
-			while(X1!=X2 || Y1!=Y2)
-				if(round(m*X1+b-Y1))
-					Y1+=signY //Line exits tile vertically
-				else
-					X1+=signX //Line exits tile horizontally
+			var/s = SIMPLE_SIGN(Y2-Y1)
+			Y1+=s
+			while(Y1!=Y2)
 				T=locate(X1,Y1,Z)
 				if(T.opacity)
 					return 0
-		return 1
-#undef SIGN
+				Y1+=s
+	else
+		var/m=(32*(Y2-Y1)+(PY2-PY1))/(32*(X2-X1)+(PX2-PX1))
+		var/b=(Y1+PY1/32-0.015625)-m*(X1+PX1/32-0.015625) //In tiles
+		var/signX = SIMPLE_SIGN(X2-X1)
+		var/signY = SIMPLE_SIGN(Y2-Y1)
+		if(X1<X2)
+			b+=m
+		while(X1!=X2 || Y1!=Y2)
+			if(round(m*X1+b-Y1))
+				Y1+=signY //Line exits tile vertically
+			else
+				X1+=signX //Line exits tile horizontally
+			T=locate(X1,Y1,Z)
+			if(T.opacity)
+				return 0
+	return 1
 
-proc/isInSight(var/atom/A, var/atom/B)
+/proc/isInSight(var/atom/A, var/atom/B)
 	var/turf/Aturf = get_turf(A)
 	var/turf/Bturf = get_turf(B)
 
 	if(!Aturf || !Bturf)
 		return 0
 
-	if(inLineOfSight(Aturf.x,Aturf.y, Bturf.x,Bturf.y,Aturf.z))
-		return 1
-
-	else
-		return 0
+	return inLineOfSight(Aturf.x, Aturf.y, Bturf.x, Bturf.y, Aturf.z)
 
 /proc/get_cardinal_step_away(atom/start, atom/finish) //returns the position of a step from start away from finish, in one of the cardinal directions
 	//returns only NORTH, SOUTH, EAST, or WEST
@@ -430,23 +401,6 @@ proc/isInSight(var/atom/A, var/atom/B)
 		mobs_found += M
 	return mobs_found
 
-/proc/GetRedPart(const/hexa)
-	return hex2num(copytext(hexa,2,4))
-
-/proc/GetGreenPart(const/hexa)
-	return hex2num(copytext(hexa,4,6))
-
-/proc/GetBluePart(const/hexa)
-	return hex2num(copytext(hexa,6,8))
-
-/proc/GetHexColors(const/hexa)
-	return list(
-			GetRedPart(hexa),
-			GetGreenPart(hexa),
-			GetBluePart(hexa)
-		)
-
-
 /proc/alone_in_area(var/area/the_area, var/mob/must_be_alone, var/check_type = /mob/living/carbon)
 	var/area/our_area = get_area_master(the_area)
 	for(var/C in living_mob_list)
@@ -458,20 +412,37 @@ proc/isInSight(var/atom/A, var/atom/B)
 			return 0
 	return 1
 
+
+/proc/GetRedPart(const/hexa)
+	return hex2num(copytext(hexa, 2, 4))
+
+/proc/GetGreenPart(const/hexa)
+	return hex2num(copytext(hexa, 4, 6))
+
+/proc/GetBluePart(const/hexa)
+	return hex2num(copytext(hexa, 6, 8))
+
+/proc/GetHexColors(const/hexa)
+	return list(
+		GetRedPart(hexa),
+		GetGreenPart(hexa),
+		GetBluePart(hexa),
+	)
+
 /proc/MinutesToTicks(var/minutes as num)
 	return minutes * 60 * 10
 
 /proc/SecondsToTicks(var/seconds)
 	return seconds * 10
 
-proc/pollCandidates(var/Question, var/be_special_type, var/antag_age_check = 0, var/poll_time = 300)
+proc/pollCandidates(Question, be_special_type, antag_age_check = 0, poll_time = 300, ignore_respawnability = 0, min_hours = 0, flashwindow = TRUE)
 	var/roletext = be_special_type ? get_roletext(be_special_type) : null
 	var/list/mob/dead/observer/candidates = list()
 	var/time_passed = world.time
-	if (!Question)
+	if(!Question)
 		Question = "Would you like to be a special role?"
 
-	for(var/mob/dead/observer/G in player_list)
+	for(var/mob/dead/observer/G in (ignore_respawnability ? player_list : respawnable_list))
 		if(!G.key || !G.client)
 			continue
 		if(be_special_type)
@@ -483,12 +454,16 @@ proc/pollCandidates(var/Question, var/be_special_type, var/antag_age_check = 0, 
 		if(roletext)
 			if(jobban_isbanned(G, roletext) || jobban_isbanned(G, "Syndicate"))
 				continue
+		if(min_hours)
+			if(G.client.get_exp_living_num() < min_hours * 60)
+				continue
 		if(G.has_enabled_antagHUD)
 			continue
 		spawn(0)
 			G << 'sound/misc/notice2.ogg'//Alerting them to their consideration
-
-			switch(alert(G,Question,"Please answer in [poll_time/10] seconds!","Yes","No"))
+			if(flashwindow)
+				window_flash(G.client)
+			switch(alert(G,Question,"Please answer in [poll_time/10] seconds!","No","Yes","Not This Round"))
 				if("Yes")
 					to_chat(G, "<span class='notice'>Choice registered: Yes.</span>")
 					if((world.time-time_passed)>poll_time)//If more than 30 game seconds passed.
@@ -498,6 +473,11 @@ proc/pollCandidates(var/Question, var/be_special_type, var/antag_age_check = 0, 
 					candidates += G
 				if("No")
 					to_chat(G, "<span class='danger'>Choice registered: No.</span>")
+					return
+				if("Not This Round")
+					to_chat(G, "<span class='danger'>Choice registered: No.</span>")
+					to_chat(G, "<span class='notice'>You will no longer receive notifications for the role '[roletext]' for the rest of the round.</span>")
+					G.client.prefs.be_special -= be_special_type
 					return
 				else
 					return
@@ -509,3 +489,12 @@ proc/pollCandidates(var/Question, var/be_special_type, var/antag_age_check = 0, 
 			candidates.Remove(G)
 
 	return candidates
+
+/proc/window_flash(client/C)
+	if(ismob(C))
+		var/mob/M = C
+		if(M.client)
+			C = M.client
+	if(!C || !C.prefs.windowflashing)
+		return
+	winset(C, "mainwindow", "flash=5")
